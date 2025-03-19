@@ -11,8 +11,8 @@ import UntitledProject1
 
 Rectangle {
     id: rectangle
-    width: Constants.width
-    height: Constants.height
+    width: 800
+    height: 600
 
     color: Constants.backgroundColor
 
@@ -27,6 +27,7 @@ Rectangle {
             target: button
             onClicked: animation.start()
         }
+
     }
 
     Text {
