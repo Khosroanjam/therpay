@@ -16,6 +16,15 @@ Item {
     property int patientAge: 0
     property int patientGender: 1
 
+    // مدل داده‌ها برای بیماری‌ها
+    property var diseaseModel: []
+
+    // لود کردن لیست بیماری‌ها از دیتابیس
+    function loadDiseases() {
+        diseaseModel = diseaseBackend.getAllDiseases()
+        console.log("تعداد بیماری‌های بارگذاری شده:", diseaseModel.length)
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "#f5f5f5"
@@ -257,356 +266,165 @@ Item {
                             Layout.alignment: Qt.AlignHCenter
                         }
 
-                        // دکمه‌های انتخاب درمان
+                        // دکمه‌های انتخاب درمان - بارگذاری پویا از دیتابیس
                         GridLayout {
+                            id: diseaseGrid
                             Layout.fillWidth: true
                             columns: 2
                             rowSpacing: 15
                             columnSpacing: 15
 
-                            // دکمه پوست
-                            Button {
-                                id: skeinButton
-                                text: "پوست"
-                                font.pixelSize: 14
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 120
+                            // دکمه‌ها به صورت پویا اضافه می‌شوند
+                            Repeater {
+                                model: diseaseModel
 
-                                background: Rectangle {
-                                    radius: 10
-                                    border.color: "blue"
-                                    border.width: 2
-                                    color: skeinButton.down ? "lightpink" : "lightblue"
-                                }
+                                delegate: Button {
+                                    id: diseaseButton
+                                    property int diseaseId: modelData.id
+                                    property string diseaseName: modelData.name
+                                    property string diseaseDescription: modelData.description
+                                    property int diseaseMinutes: modelData.default_minutes
+                                    property int diseaseSeconds: modelData.default_seconds
 
-                                Image {
-                                    source: "images/Iconarchive-Rose-Pink-Rose-2.512.png"
-                                    width: 45
-                                    height: 45
-                                    anchors.top: parent
-                                }
+                                    text: diseaseName
+                                    font.pixelSize: 14
+                                    font.family: "Tahoma"
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 120
 
-                                transform: Scale {
-                                    id: skeinButtonScale
-                                    origin.x: skeinButton.width / 2
-                                    origin.y: skeinButton.height / 2
-                                    xScale: 1.0
-                                    yScale: 1.0
-                                }
+                                    background: Rectangle {
+                                        radius: 10
+                                        border.color: "#2196F3"
+                                        border.width: 2
+                                        color: diseaseButton.down ? "#E3F2FD" : "white"
 
-                                SequentialAnimation {
-                                    id: skeinButtonAnimate
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: skeinButtonScale
-                                            property: "xScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
-                                        }
-
-                                        NumberAnimation {
-                                            target: skeinButtonScale
-                                            property: "yScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
+                                        // نمایش زمان پیش‌فرض درمان
+                                        Text {
+                                            text: diseaseButton.diseaseMinutes + ":" +
+                                                  (diseaseButton.diseaseSeconds < 10 ? "0" : "") +
+                                                  diseaseButton.diseaseSeconds
+                                            anchors.bottom: parent.bottom
+                                            anchors.bottomMargin: 10
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            font.pixelSize: 16
+                                            font.bold: true
+                                            color: "#1976D2"
                                         }
                                     }
 
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: skeinButtonScale
-                                            property: "xScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                        NumberAnimation {
-                                            target: skeinButtonScale
-                                            property: "yScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
+                                    transform: Scale {
+                                        id: buttonScale
+                                        origin.x: diseaseButton.width / 2
+                                        origin.y: diseaseButton.height / 2
+                                        xScale: 1.0
+                                        yScale: 1.0
                                     }
-                                }
 
-                                // تایمر برای تاخیر در هدایت به صفحه بعدی
-                                Timer {
-                                    id: skeinNavigationTimer
-                                    interval: 300 // تاخیر 300 میلی‌ثانیه برای اتمام انیمیشن
-                                    onTriggered: navigateToTherapy("SkeinWindows.qml")
-                                }
+                                    SequentialAnimation {
+                                        id: buttonAnimate
+                                        ParallelAnimation {
+                                            NumberAnimation {
+                                                target: buttonScale
+                                                property: "xScale"
+                                                to: 0.5
+                                                duration: 100
+                                                easing.type: Easing.OutQuad
+                                            }
 
-                                onClicked: {
-                                    skeinButtonAnimate.start()
-                                    skeinNavigationTimer.start()
-                                }
-                            }
-
-                            // دکمه زخم
-                            Button {
-                                id: woundButton
-                                text: "زخم"
-                                font.pixelSize: 14
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 120
-
-                                background: Rectangle {
-                                    radius: 10
-                                    border.color: "blue"
-                                    border.width: 2
-                                    color: woundButton.down ? "lightpink" : "lightblue"
-                                }
-
-                                Image {
-                                    source: "images/Iconarchive-Rose-Purple-Rose-Blossom.512.png"
-                                    width: 45
-                                    height: 45
-                                    anchors.top: parent
-                                }
-
-                                transform: Scale {
-                                    id: woundButtonScale
-                                    origin.x: woundButton.width / 2
-                                    origin.y: woundButton.height / 2
-                                    xScale: 1.0
-                                    yScale: 1.0
-                                }
-
-                                SequentialAnimation {
-                                    id: woundButtonAnimate
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: woundButtonScale
-                                            property: "xScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
+                                            NumberAnimation {
+                                                target: buttonScale
+                                                property: "yScale"
+                                                to: 0.5
+                                                duration: 100
+                                                easing.type: Easing.OutQuad
+                                            }
                                         }
 
-                                        NumberAnimation {
-                                            target: woundButtonScale
-                                            property: "yScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
+                                        ParallelAnimation {
+                                            NumberAnimation {
+                                                target: buttonScale
+                                                property: "xScale"
+                                                to: 1.0
+                                                duration: 200
+                                                easing.type: Easing.OutBack
+                                            }
+                                            NumberAnimation {
+                                                target: buttonScale
+                                                property: "yScale"
+                                                to: 1.0
+                                                duration: 200
+                                                easing.type: Easing.OutBack
+                                            }
                                         }
                                     }
 
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: woundButtonScale
-                                            property: "xScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                        NumberAnimation {
-                                            target: woundButtonScale
-                                            property: "yScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                    }
-                                }
-
-                                // تایمر برای تاخیر در هدایت به صفحه بعدی
-                                Timer {
-                                    id: woundNavigationTimer
-                                    interval: 300 // تاخیر 300 میلی‌ثانیه برای اتمام انیمیشن
-                                    onTriggered: navigateToTherapy("WoundTherapy.qml")
-                                }
-
-                                onClicked: {
-                                    woundButtonAnimate.start()
-                                    woundNavigationTimer.start()
-                                }
-                            }
-
-                            // دکمه جراحی
-                            Button {
-                                id: surgeryButton
-                                text: "جراحی"
-                                font.pixelSize: 14
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 120
-
-                                background: Rectangle {
-                                    radius: 10
-                                    border.color: "blue"
-                                    border.width: 2
-                                    color: surgeryButton.down ? "lightpink" : "lightblue"
-                                }
-
-                                Image {
-                                    source: "images/Iconarchive-Rose-Red-Rose-Blossom.512.png"
-                                    width: 45
-                                    height: 45
-                                    anchors.top: parent
-                                }
-
-                                transform: Scale {
-                                    id: surgeryButtonScale
-                                    origin.x: surgeryButton.width / 2
-                                    origin.y: surgeryButton.height / 2
-                                    xScale: 1.0
-                                    yScale: 1.0
-                                }
-
-                                SequentialAnimation {
-                                    id: surgeryButtonAnimate
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: surgeryButtonScale
-                                            property: "xScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
-                                        }
-
-                                        NumberAnimation {
-                                            target: surgeryButtonScale
-                                            property: "yScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
+                                    Timer {
+                                        id: navigationTimer
+                                        interval: 300
+                                        onTriggered: {
+                                            navigateToTimer(diseaseButton.diseaseName,
+                                                           diseaseButton.diseaseMinutes,
+                                                           diseaseButton.diseaseSeconds)
                                         }
                                     }
 
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: surgeryButtonScale
-                                            property: "xScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                        NumberAnimation {
-                                            target: surgeryButtonScale
-                                            property: "yScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
+                                    onClicked: {
+                                        buttonAnimate.start()
+                                        navigationTimer.start()
                                     }
-                                }
-
-                                // تایمر برای تاخیر در هدایت به صفحه بعدی
-                                Timer {
-                                    id: surgeryNavigationTimer
-                                    interval: 300 // تاخیر 300 میلی‌ثانیه برای اتمام انیمیشن
-                                    onTriggered: navigateToTherapy("SurgeryTherapy.qml")
-                                }
-
-                                onClicked: {
-                                    surgeryButtonAnimate.start()
-                                    surgeryNavigationTimer.start()
-                                }
-                            }
-
-                            // دکمه سوختگی
-                            Button {
-                                id: burnButton
-                                text: "سوختگی"
-                                font.pixelSize: 14
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 120
-
-                                background: Rectangle {
-                                    radius: 10
-                                    border.color: "blue"
-                                    border.width: 2
-                                    color: burnButton.down ? "lightpink" : "lightblue"
-                                }
-
-                                transform: Scale {
-                                    id: burnButtonScale
-                                    origin.x: burnButton.width / 2
-                                    origin.y: burnButton.height / 2
-                                    xScale: 1.0
-                                    yScale: 1.0
-                                }
-
-                                SequentialAnimation {
-                                    id: burnButtonAnimate
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: burnButtonScale
-                                            property: "xScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
-                                        }
-
-                                        NumberAnimation {
-                                            target: burnButtonScale
-                                            property: "yScale"
-                                            to: 0.5
-                                            duration: 100
-                                            easing.type: Easing.OutQuad
-                                        }
-                                    }
-
-                                    ParallelAnimation {
-                                        NumberAnimation {
-                                            target: burnButtonScale
-                                            property: "xScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                        NumberAnimation {
-                                            target: burnButtonScale
-                                            property: "yScale"
-                                            to: 1.0
-                                            duration: 200
-                                            easing.type: Easing.OutBack
-                                        }
-                                    }
-                                }
-
-                                // تایمر برای تاخیر در هدایت به صفحه بعدی
-                                Timer {
-                                    id: burnNavigationTimer
-                                    interval: 300 // تاخیر 300 میلی‌ثانیه برای اتمام انیمیشن
-                                    onTriggered: navigateToTherapy("BurnTherapy.qml")
-                                }
-
-                                onClicked: {
-                                    burnButtonAnimate.start()
-                                    burnNavigationTimer.start()
                                 }
                             }
                         }
+
+                        // دکمه اضافه کردن بیماری جدید (برای مدیران)
                     }
                 }
             }
         }
     }
 
-    // تابع برای باز کردن صفحه درمان انتخاب شده
-    function navigateToTherapy(qmlFile) {
-        var component = Qt.createComponent(qmlFile)
+    // تابع برای باز کردن صفحه تایمر با زمان پیش‌فرض بیماری انتخاب شده
+    function navigateToTimer(diseaseName, minutes, seconds) {
+        var component = Qt.createComponent("PlasmaTimer.qml")
         if (component.status === Component.Ready) {
-            var therapyPage = component.createObject(null, {
+            var timerPage = component.createObject(null, {
                 "patientCodemeli": patientCodemeli,
                 "patientName": patientName,
-                "patientAge": patientAge,
-                "patientGender": patientGender
+                "diseaseName": diseaseName,
+                "initialMinutes": minutes,
+                "initialSeconds": seconds
             })
 
             // اتصال سیگنال بازگشت
-            therapyPage.goBack.connect(function() {
-                console.log("بازگشت از صفحه درمان")
+            timerPage.goBack.connect(function() {
+                console.log("بازگشت از صفحه تایمر")
                 stackView.pop()
             })
 
-            stackView.push(therapyPage)
+            stackView.push(timerPage)
         } else if (component.status === Component.Error) {
-            console.error("خطا در بارگذاری " + qmlFile + ":", component.errorString())
+            console.error("خطا در بارگذاری PlasmaTimer.qml:", component.errorString())
+            showToast("خطا در بارگذاری صفحه تایمر")
+        }
+    }
+
+    // تابع برای باز کردن صفحه مدیریت بیماری‌ها
+    function navigateToDiseaseManagement() {
+        var component = Qt.createComponent("DiseaseManagement.qml")
+        if (component.status === Component.Ready) {
+            var managementPage = component.createObject(null)
+
+            // اتصال سیگنال بازگشت و به‌روزرسانی
+            managementPage.goBack.connect(function() {
+                console.log("بازگشت از صفحه مدیریت بیماری‌ها")
+                loadDiseases() // به‌روزرسانی لیست بیماری‌ها
+                stackView.pop()
+            })
+
+            stackView.push(managementPage)
+        } else if (component.status === Component.Error) {
+            console.error("خطا در بارگذاری DiseaseManagement.qml:", component.errorString())
+            showToast("خطا در بارگذاری صفحه مدیریت بیماری‌ها")
         }
     }
 
@@ -650,10 +468,20 @@ Item {
         }
     }
 
+    // اتصال به سیگنال به‌روزرسانی دیتابیس
+    Connections {
+        target: diseaseBackend
+        function onDiseaseUpdated() {
+            console.log("سیگنال به‌روزرسانی بیماری‌ها دریافت شد")
+            loadDiseases() // به‌روزرسانی لیست بیماری‌ها
+        }
+    }
+
     Component.onCompleted: {
         console.log("PlasmaTherapy loaded - patientCodemeli:", patientCodemeli,
                     "patientName:", patientName,
                     "patientAge:", patientAge,
                     "patientGender:", patientGender)
+        loadDiseases() // بارگذاری لیست بیماری‌ها در هنگام بارگذاری صفحه
     }
 }

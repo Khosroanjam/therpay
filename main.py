@@ -9,7 +9,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from backend.logic import LoginManager
 
 from backend.logic import LoginManager
-from backend.database import PatientManager
+from backend.database import PatientManager, DiseaseManager  # اضافه کردن DiseaseManager
 
 class Backend(QObject):
     # سیگنال‌ها برای ارتباط با QML
@@ -124,6 +124,115 @@ class PatientBackend(QObject):
             print(error_msg)
             self.errorOccurred.emit(error_msg)
 
+
+# اضافه کردن کلاس جدید برای مدیریت بیماری‌ها
+class DiseaseBackend(QObject):
+    # سیگنال‌ها برای ارتباط با QML
+    diseaseUpdated = Signal()  # سیگنال برای به‌روزرسانی لیست بیماری‌ها
+    errorOccurred = Signal(str)  # سیگنال برای خطا
+    
+    def __init__(self):
+        super().__init__()
+        self._disease_manager = DiseaseManager()
+    
+    @Slot(str, result='QVariantMap')
+    def getDiseaseInfo(self, disease_name):
+        """دریافت اطلاعات یک بیماری با نام آن"""
+        try:
+            result = self._disease_manager.get_disease_info(disease_name)
+            return result if result else {}
+        except Exception as e:
+            error_msg = f"خطا در دریافت اطلاعات بیماری: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return {}
+    
+    @Slot(result='QVariantList')
+    def getAllDiseases(self):
+        """دریافت لیست همه بیماری‌ها"""
+        try:
+            return self._disease_manager.get_all_diseases()
+        except Exception as e:
+            error_msg = f"خطا در دریافت لیست بیماری‌ها: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return []
+    
+    @Slot(str, str, int, int, result=bool)
+    def addDisease(self, name, description, minutes, seconds):
+        """اضافه کردن یک بیماری جدید"""
+        try:
+            result, message = self._disease_manager.add_disease(name, description, minutes, seconds)
+            if result:
+                self.diseaseUpdated.emit()
+                print(f"بیماری '{name}' با موفقیت اضافه شد.")
+            else:
+                print(f"خطا در اضافه کردن بیماری: {message}")
+                self.errorOccurred.emit(message)
+            return result
+        except Exception as e:
+            error_msg = f"خطا در اضافه کردن بیماری: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return False
+    
+    @Slot(int, str, str, int, int, result=bool)
+    def updateDisease(self, disease_id, name, description, minutes, seconds):
+        """به‌روزرسانی اطلاعات یک بیماری"""
+        try:
+            result, message = self._disease_manager.update_disease(
+                disease_id, name, description, minutes, seconds
+            )
+            if result:
+                self.diseaseUpdated.emit()
+                print(f"بیماری با شناسه {disease_id} با موفقیت به‌روز شد.")
+            else:
+                print(f"خطا در به‌روزرسانی بیماری: {message}")
+                self.errorOccurred.emit(message)
+            return result
+        except Exception as e:
+            error_msg = f"خطا در به‌روزرسانی بیماری: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return False
+    
+    @Slot(str, int, int, result=bool)
+    def updateDiseaseTime(self, disease_name, minutes, seconds):
+        """به‌روزرسانی زمان پیش‌فرض برای یک بیماری"""
+        try:
+            result, message = self._disease_manager.update_disease_time(disease_name, minutes, seconds)
+            if result:
+                self.diseaseUpdated.emit()
+                print(f"زمان پیش‌فرض بیماری '{disease_name}' با موفقیت به‌روز شد.")
+            else:
+                print(f"خطا در به‌روزرسانی زمان بیماری: {message}")
+                self.errorOccurred.emit(message)
+            return result
+        except Exception as e:
+            error_msg = f"خطا در به‌روزرسانی زمان بیماری: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return False
+    
+    @Slot(int, result=bool)
+    def deleteDisease(self, disease_id):
+        """حذف یک بیماری"""
+        try:
+            result, message = self._disease_manager.delete_disease(disease_id)
+            if result:
+                self.diseaseUpdated.emit()
+                print(f"بیماری با شناسه {disease_id} با موفقیت حذف شد.")
+            else:
+                print(f"خطا در حذف بیماری: {message}")
+                self.errorOccurred.emit(message)
+            return result
+        except Exception as e:
+            error_msg = f"خطا در حذف بیماری: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            return False
+
+
 def main():
     # ایجاد برنامه
     app = QGuiApplication(sys.argv)
@@ -134,9 +243,12 @@ def main():
     # ایجاد نمونه backend
     backend = Backend()
     patient_backend = PatientBackend()
+    disease_backend = DiseaseBackend()  # اضافه کردن نمونه DiseaseBackend
+    
     # قرار دادن backend در context موتور QML
     engine.rootContext().setContextProperty("backend", backend)
     engine.rootContext().setContextProperty("patientBackend", patient_backend)
+    engine.rootContext().setContextProperty("diseaseBackend", disease_backend)  # اضافه کردن به context
 
     # تنظیم مسیر فایل‌های QML
     qml_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UntitledProject1Content")

@@ -2,7 +2,7 @@ import QmlProject
 
 Project {
     mainFile: "UntitledProject1Content/Main.qml"
-    mainUiFile: "UntitledProject1Content/Screen01.ui.qml"
+    mainUiFile: "UntitledProject1Content/Main.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {

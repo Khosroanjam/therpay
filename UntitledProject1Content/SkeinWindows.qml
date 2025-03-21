@@ -51,11 +51,34 @@ Item {
                 color: "#f0f0f0"
                 radius: 10
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "محتوای صفحه پوست"
-                    font.pixelSize: 18
+                DigitalTimer{
+                    id: d1
+                    Layout.preferredHeight: parent.height
+                    Layout.preferredWidth: parent.width
+                    width: parent.width
+                    height: parent.height
                 }
+
+                Connections {
+                               target: digitalTimer
+                               function onRunningChanged() {
+                                   if (!digitalTimer.running) {
+                                       // وقتی تایمر متوقف می‌شود، گیج را به‌روز کنید
+                                       gauge.value = (digitalTimer.seconds % 60) * 100 / 60;
+                                   }
+                               }
+                           }
+
+                           Timer {
+                               interval: 100
+                               running: digitalTimer.running
+                               repeat: true
+                               onTriggered: {
+                                   if (digitalTimer.running) {
+                                       gauge.value = (digitalTimer.seconds % 60) * 100 / 60;
+                                   }
+                               }
+                           }
             }
         }
     }

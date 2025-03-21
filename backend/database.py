@@ -336,3 +336,210 @@ class OperatorManager:
         '''
         
         return self.db_manager.execute_query(query)
+    
+
+# اضافه کردن این کلاس به انتهای فایل database.py موجود شما
+
+class DiseaseManager:
+    """کلاس مدیریت بیماری‌ها و زمان‌های پیش‌فرض آن‌ها"""
+    
+    def __init__(self, db_manager=None):
+        """مقداردهی اولیه"""
+        self.db_manager = db_manager or DatabaseManager()
+        self._initialize_disease_table()
+    
+    def _initialize_disease_table(self):
+        """ایجاد جدول بیماری‌ها اگر وجود نداشته باشد"""
+        try:
+            # بررسی وجود جدول diseases
+            check_table_query = """
+            SELECT name FROM sqlite_master WHERE type='table' AND name='diseases';
+            """
+            table_exists = self.db_manager.execute_query(check_table_query, fetch_one=True)
+            
+            if not table_exists:
+                # ایجاد جدول بیماری‌ها
+                create_table_query = """
+                CREATE TABLE diseases (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL UNIQUE,
+                    description TEXT,
+                    default_minutes INTEGER NOT NULL,
+                    default_seconds INTEGER NOT NULL
+                );
+                """
+                self.db_manager.execute_query(create_table_query)
+                
+                # اضافه کردن چند نمونه داده پیش‌فرض
+                default_data = [
+                    ('پوست', 'درمان پوست با پلاسما تراپی', 2, 30),
+                    ('زخم دیابتی', 'درمان زخم دیابتی با پلاسما تراپی', 5, 0),
+                    ('جوان‌سازی پوست', 'جوان‌سازی پوست با پلاسما تراپی', 3, 0),
+                    ('ریزش مو', 'درمان ریزش مو با پلاسما تراپی', 4, 0),
+                    ('ترمیم زخم', 'ترمیم زخم با پلاسما تراپی', 2, 0)
+                ]
+                
+                insert_query = """
+                INSERT INTO diseases (name, description, default_minutes, default_seconds)
+                VALUES (?, ?, ?, ?);
+                """
+                
+                for data in default_data:
+                    self.db_manager.execute_query(insert_query, data)
+                
+                print("جدول بیماری‌ها با موفقیت ایجاد شد و داده‌های نمونه اضافه شدند.")
+        
+        except sqlite3.Error as e:
+            print(f"خطا در ایجاد جدول بیماری‌ها: {e}")
+            raise
+    
+    def get_disease_info(self, disease_name):
+        """دریافت اطلاعات یک بیماری خاص با نام آن"""
+        query = """
+        SELECT id, name, description, default_minutes, default_seconds
+        FROM diseases
+        WHERE name = ?;
+        """
+        
+        result = self.db_manager.execute_query(query, (disease_name,), fetch_one=True)
+        
+        if result:
+            return {
+                "id": result[0],
+                "name": result[1],
+                "description": result[2],
+                "default_minutes": result[3],
+                "default_seconds": result[4]
+            }
+        
+        return None
+    
+    def get_all_diseases(self):
+        """دریافت لیست همه بیماری‌ها"""
+        query = """
+        SELECT id, name, description, default_minutes, default_seconds
+        FROM diseases
+        ORDER BY name;
+        """
+        
+        results = self.db_manager.execute_query(query)
+        
+        diseases = []
+        for result in results:
+            diseases.append({
+                "id": result[0],
+                "name": result[1],
+                "description": result[2],
+                "default_minutes": result[3],
+                "default_seconds": result[4]
+            })
+        
+        return diseases
+    
+    def add_disease(self, name, description, minutes, seconds):
+        """اضافه کردن یک بیماری جدید"""
+        # بررسی وجود بیماری با نام مشابه
+        existing_disease = self.get_disease_info(name)
+        if existing_disease:
+            return False, "بیماری با این نام قبلاً ثبت شده است."
+        
+        query = """
+        INSERT INTO diseases (name, description, default_minutes, default_seconds)
+        VALUES (?, ?, ?, ?);
+        """
+        
+        try:
+            self.db_manager.execute_query(query, (name, description, minutes, seconds))
+            return True, "بیماری با موفقیت ثبت شد."
+        except sqlite3.IntegrityError:
+            return False, "خطا در ثبت بیماری: نام بیماری تکراری است."
+        except Exception as e:
+            return False, f"خطا در ثبت بیماری: {str(e)}"
+    
+    def update_disease(self, disease_id, name=None, description=None, minutes=None, seconds=None):
+        """به‌روزرسانی اطلاعات یک بیماری"""
+        # ابتدا بررسی می‌کنیم که بیماری وجود دارد یا خیر
+        query_check = """
+        SELECT id FROM diseases WHERE id = ?;
+        """
+        existing_disease = self.db_manager.execute_query(query_check, (disease_id,), fetch_one=True)
+        
+        if not existing_disease:
+            return False, "بیماری با این شناسه یافت نشد."
+        
+        # ایجاد query به‌روزرسانی با فیلدهایی که مقدار دارند
+        update_fields = []
+        params = []
+        
+        if name is not None:
+            update_fields.append("name = ?")
+            params.append(name)
+        
+        if description is not None:
+            update_fields.append("description = ?")
+            params.append(description)
+        
+        if minutes is not None:
+            update_fields.append("default_minutes = ?")
+            params.append(minutes)
+        
+        if seconds is not None:
+            update_fields.append("default_seconds = ?")
+            params.append(seconds)
+        
+        # اگر هیچ فیلدی برای به‌روزرسانی نباشد
+        if not update_fields:
+            return False, "هیچ فیلدی برای به‌روزرسانی مشخص نشده است."
+        
+        # ایجاد query نهایی
+        query = f"UPDATE diseases SET {', '.join(update_fields)} WHERE id = ?;"
+        params.append(disease_id)
+        
+        try:
+            self.db_manager.execute_query(query, params)
+            return True, "اطلاعات بیماری با موفقیت به‌روز شد."
+        except sqlite3.IntegrityError:
+            return False, "خطا در به‌روزرسانی اطلاعات بیماری: نام بیماری تکراری است."
+        except Exception as e:
+            return False, f"خطا در به‌روزرسانی اطلاعات بیماری: {str(e)}"
+    
+    def update_disease_time(self, disease_name, minutes, seconds):
+        """به‌روزرسانی زمان پیش‌فرض برای یک بیماری"""
+        # ابتدا بررسی می‌کنیم که بیماری وجود دارد یا خیر
+        disease_info = self.get_disease_info(disease_name)
+        if not disease_info:
+            return False, "بیماری با این نام یافت نشد."
+        
+        query = """
+        UPDATE diseases 
+        SET default_minutes = ?, default_seconds = ? 
+        WHERE name = ?;
+        """
+        
+        try:
+            self.db_manager.execute_query(query, (minutes, seconds, disease_name))
+            return True, "زمان پیش‌فرض بیماری با موفقیت به‌روز شد."
+        except Exception as e:
+            return False, f"خطا در به‌روزرسانی زمان پیش‌فرض بیماری: {str(e)}"
+    
+    def delete_disease(self, disease_id):
+        """حذف یک بیماری با شناسه آن"""
+        # ابتدا بررسی می‌کنیم که بیماری وجود دارد یا خیر
+        query_check = """
+        SELECT id FROM diseases WHERE id = ?;
+        """
+        existing_disease = self.db_manager.execute_query(query_check, (disease_id,), fetch_one=True)
+        
+        if not existing_disease:
+            return False, "بیماری با این شناسه یافت نشد."
+        
+        query = """
+        DELETE FROM diseases
+        WHERE id = ?;
+        """
+        
+        try:
+            self.db_manager.execute_query(query, (disease_id,))
+            return True, "بیماری با موفقیت حذف شد."
+        except Exception as e:
+            return False, f"خطا در حذف بیماری: {str(e)}"
