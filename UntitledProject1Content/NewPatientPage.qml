@@ -1,3 +1,4 @@
+// NewPatientPage.qml (توجه: اسم فایل باید دقیقاً همین باشد)
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -7,6 +8,9 @@ Item {
     width: parent.width
     height: parent.height
 
+    // سیگنال برای درخواست بازگشت
+    signal backRequested()
+
     // پراپرتی‌های صفحه
     property string currentPatientCodemeli: ""
     property bool isEditMode: false
@@ -14,19 +18,31 @@ Item {
     property int patientAge: 0
     property int patientGender: 1
     property string searchedCodemeli: ""  // پراپرتی برای دریافت کد ملی جستجو شده
+    property var stackView: null  // پراپرتی برای دسترسی مستقیم به stackView
+
+    // متغیر برای ذخیره کد ملی جاری برای جستجوی مجدد پس از بازگشت
+    property string codeToSearch: ""
 
     Rectangle {
         anchors.fill: parent
         color: "#f5f5f5"
 
-        // سربرگ صفحه
+        // سربرگ صفحه با طراحی مدرن
         Rectangle {
             id: header
             width: parent.width
             height: 60
             color: "#2196F3"
 
-            // دکمه بازگشت
+            // سایه برای هدر با استفاده از Rectangle
+            Rectangle {
+                anchors.top: parent.bottom
+                width: parent.width
+                height: 2
+                color: "#20000000"
+            }
+
+            // دکمه بازگشت با انیمیشن
             Rectangle {
                 id: backButton
                 width: 40
@@ -52,8 +68,42 @@ Item {
                 MouseArea {
                     id: backMouseArea
                     anchors.fill: parent
-                    onClicked: stackView.pop()
+                    hoverEnabled: true
+                    onClicked: {
+                        console.log("Back button clicked, emitting backRequested signal")
+
+                        // ارسال سیگنال بازگشت
+                        backRequested()
+
+                        // استفاده از stackView اگر تنظیم شده باشد
+                        if (stackView) {
+                            console.log("Using provided stackView to pop")
+                            stackView.pop()
+                        }
+                    }
                 }
+
+                // انیمیشن هنگام هاور
+                states: [
+                    State {
+                        name: "hovered"
+                        when: backMouseArea.containsMouse
+                        PropertyChanges {
+                            target: backButton
+                            scale: 1.1
+                        }
+                    }
+                ]
+
+                transitions: [
+                    Transition {
+                        NumberAnimation {
+                            properties: "scale"
+                            duration: 150
+                            easing.type: Easing.OutQuad
+                        }
+                    }
+                ]
             }
 
             // عنوان صفحه
@@ -69,7 +119,7 @@ Item {
             }
         }
 
-        // فرم ورود اطلاعات
+        // فرم ورود اطلاعات با قابلیت اسکرول
         Flickable {
             id: formFlickable
             anchors {
@@ -81,20 +131,21 @@ Item {
             }
             contentHeight: formColumn.height + 40
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
 
             ColumnLayout {
                 id: formColumn
                 width: parent.width
                 spacing: 20
 
-                // کارت اصلی فرم
+                // کارت اصلی فرم با سایه
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: formLayout.height + 40
                     color: "white"
                     radius: 8
 
-                    // سایه برای کارت
+                    // سایه برای کارت با استفاده از Rectangle
                     Rectangle {
                         anchors.centerIn: parent
                         width: parent.width + 6
@@ -127,7 +178,7 @@ Item {
                             Layout.alignment: Qt.AlignHCenter
                         }
 
-                        // فیلد کد ملی
+                        // فیلد کد ملی با طراحی مدرن
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 5
@@ -141,45 +192,50 @@ Item {
                                 color: "#424242"
                             }
 
-                            TextField {
-                                id: codemeliField
+                            Rectangle {
                                 Layout.fillWidth: true
-                                height: 40
-                                placeholderText: "کد ملی 10 رقمی"
-                                inputMethodHints: Qt.ImhDigitsOnly
-                                maximumLength: 10
-                                enabled: !newPatientRoot.isEditMode
+                                height: 50
+                                color: codemeliField.enabled ? "white" : "#F5F5F5"
+                                border.color: codemeliField.focus ? "#2196F3" : "#E0E0E0"
+                                border.width: 1
+                                radius: 4
 
-                                // تنظیم مستقیم مقدار text بر اساس حالت
-                                text: isEditMode ? currentPatientCodemeli.toString() :
-                                      (searchedCodemeli && searchedCodemeli.length > 0 ? searchedCodemeli : "")
+                                TextField {
+                                    id: codemeliField
+                                    anchors.fill: parent
+                                    anchors.margins: 2
+                                    placeholderText: "کد ملی 10 رقمی"
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    maximumLength: 10
+                                    enabled: !newPatientRoot.isEditMode
+                                    horizontalAlignment: TextInput.AlignHCenter
 
-                                Component.onCompleted: {
-                                        if (isEditMode && currentPatientCodemeli) {
-                                            console.log("Setting codemeli in edit mode:", currentPatientCodemeli)
-                                            text = currentPatientCodemeli
-                                        } else if (searchedCodemeli && searchedCodemeli.length > 0) {
-                                            console.log("Setting searched codemeli:", searchedCodemeli)
-                                            text = searchedCodemeli
-                                        }
+                                    // تنظیم مقدار اولیه
+                                    text: isEditMode ? currentPatientCodemeli :
+                                          (searchedCodemeli && searchedCodemeli.length > 0 ? searchedCodemeli : "")
+
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 14
                                     }
 
-                                font {
-                                    family: "Tahoma"
-                                    pixelSize: 14
-                                }
+                                    background: Rectangle {
+                                        color: "transparent"
+                                    }
 
-                                background: Rectangle {
-                                    color: codemeliField.enabled ? "white" : "#F5F5F5"
-                                    border.color: codemeliField.focus ? "#2196F3" : "#E0E0E0"
-                                    border.width: 1
-                                    radius: 4
-                                }
+                                    onTextChanged: {
+                                        var newText = text.replace(/[^0-9]/g, "")
+                                        if (newText !== text) {
+                                            text = newText
+                                        }
 
-                                onTextChanged: {
-                                    var newText = text.replace(/[^0-9]/g, "")
-                                    if (newText !== text) {
-                                        text = newText
+                                        // ذخیره برای جستجوی بعدی
+                                        if (text.length === 10) {
+                                            codeToSearch = text
+                                        }
+
+                                        // بررسی اعتبار در حین تایپ
+                                        codemeliError.visible = (text.length > 0 && text.length !== 10)
                                     }
                                 }
                             }
@@ -196,7 +252,7 @@ Item {
                             }
                         }
 
-                        // فیلد نام
+                        // فیلد نام با طراحی مدرن
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 5
@@ -210,23 +266,35 @@ Item {
                                 color: "#424242"
                             }
 
-                            TextField {
-                                id: nameField
+                            Rectangle {
                                 Layout.fillWidth: true
-                                height: 40
-                                placeholderText: "نام و نام خانوادگی بیمار"
-                                text: isEditMode ? patientName : ""
+                                height: 50
+                                color: "white"
+                                border.color: nameField.focus ? "#2196F3" : "#E0E0E0"
+                                border.width: 1
+                                radius: 4
 
-                                font {
-                                    family: "Tahoma"
-                                    pixelSize: 14
-                                }
+                                TextField {
+                                    id: nameField
+                                    anchors.fill: parent
+                                    anchors.margins: 2
+                                    placeholderText: "نام و نام خانوادگی بیمار"
+                                    text: isEditMode ? patientName : ""
+                                    horizontalAlignment: TextInput.AlignHCenter
 
-                                background: Rectangle {
-                                    color: "white"
-                                    border.color: nameField.focus ? "#2196F3" : "#E0E0E0"
-                                    border.width: 1
-                                    radius: 4
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 14
+                                    }
+
+                                    background: Rectangle {
+                                        color: "transparent"
+                                    }
+
+                                    onTextChanged: {
+                                        // بررسی اعتبار در حین تایپ
+                                        nameError.visible = (text.trim().length === 0 && activeFocus && !focus)
+                                    }
                                 }
                             }
 
@@ -242,7 +310,7 @@ Item {
                             }
                         }
 
-                        // فیلد سن
+                        // فیلد سن با طراحی مدرن
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 5
@@ -256,37 +324,44 @@ Item {
                                 color: "#424242"
                             }
 
-                            TextField {
-                                id: ageField
+                            Rectangle {
                                 Layout.fillWidth: true
-                                height: 40
-                                placeholderText: "سن بیمار"
-                                inputMethodHints: Qt.ImhDigitsOnly
-                                maximumLength: 3
-                                text: isEditMode ? patientAge.toString() : ""
+                                height: 50
+                                color: "white"
+                                border.color: ageField.focus ? "#2196F3" : "#E0E0E0"
+                                border.width: 1
+                                radius: 4
 
-                                font {
-                                    family: "Tahoma"
-                                    pixelSize: 14
-                                }
+                                TextField {
+                                    id: ageField
+                                    anchors.fill: parent
+                                    anchors.margins: 2
+                                    placeholderText: "سن بیمار"
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    maximumLength: 3
+                                    text: isEditMode ? patientAge.toString() : ""
+                                    horizontalAlignment: TextInput.AlignHCenter
 
-                                background: Rectangle {
-                                    color: "white"
-                                    border.color: ageField.focus ? "#2196F3" : "#E0E0E0"
-                                    border.width: 1
-                                    radius: 4
-                                }
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 14
+                                    }
 
-                                onTextChanged: {
-                                    var newText = text.replace(/[^0-9]/g, "")
-                                    if (newText !== text) {
-                                        text = newText
+                                    background: Rectangle {
+                                        color: "transparent"
+                                    }
+
+                                    onTextChanged: {
+                                        var newText = text.replace(/[^0-9]/g, "")
+                                        if (newText !== text) {
+                                            text = newText
+                                        }
                                     }
                                 }
                             }
                         }
 
-                        // فیلد جنسیت
+                        // فیلد جنسیت با طراحی مدرن
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 5
@@ -303,38 +378,63 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 20
+                                Layout.alignment: Qt.AlignHCenter
 
-                                RadioButton {
-                                    id: maleRadio
-                                    text: "مرد"
-                                    checked: isEditMode ? (patientGender === 1) : true
+                                // دکمه رادیویی برای مرد
+                                Rectangle {
+                                    width: 120
+                                    height: 50
+                                    color: maleRadio.checked ? "#E3F2FD" : "white"
+                                    border.color: maleRadio.checked ? "#2196F3" : "#E0E0E0"
+                                    border.width: 1
+                                    radius: 4
 
-                                    contentItem: Text {
-                                        text: maleRadio.text
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 14
+                                    RadioButton {
+                                        id: maleRadio
+                                        anchors.centerIn: parent
+                                        text: "مرد"
+                                        checked: isEditMode ? (patientGender === 1) : true
+
+                                        contentItem: Text {
+                                            text: maleRadio.text
+                                            font {
+                                                family: "Tahoma"
+                                                pixelSize: 14
+                                                bold: maleRadio.checked
+                                            }
+                                            color: maleRadio.checked ? "#2196F3" : "#424242"
+                                            leftPadding: maleRadio.indicator.width + 4
+                                            verticalAlignment: Text.AlignVCenter
                                         }
-                                        color: "#424242"
-                                        leftPadding: maleRadio.indicator.width + 4
-                                        verticalAlignment: Text.AlignVCenter
                                     }
                                 }
 
-                                RadioButton {
-                                    id: femaleRadio
-                                    text: "زن"
-                                    checked: isEditMode ? (patientGender === 0) : false
+                                // دکمه رادیویی برای زن
+                                Rectangle {
+                                    width: 120
+                                    height: 50
+                                    color: femaleRadio.checked ? "#FCE4EC" : "white"
+                                    border.color: femaleRadio.checked ? "#E91E63" : "#E0E0E0"
+                                    border.width: 1
+                                    radius: 4
 
-                                    contentItem: Text {
-                                        text: femaleRadio.text
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 14
+                                    RadioButton {
+                                        id: femaleRadio
+                                        anchors.centerIn: parent
+                                        text: "زن"
+                                        checked: isEditMode ? (patientGender === 0) : false
+
+                                        contentItem: Text {
+                                            text: femaleRadio.text
+                                            font {
+                                                family: "Tahoma"
+                                                pixelSize: 14
+                                                bold: femaleRadio.checked
+                                            }
+                                            color: femaleRadio.checked ? "#E91E63" : "#424242"
+                                            leftPadding: femaleRadio.indicator.width + 4
+                                            verticalAlignment: Text.AlignVCenter
                                         }
-                                        color: "#424242"
-                                        leftPadding: femaleRadio.indicator.width + 4
-                                        verticalAlignment: Text.AlignVCenter
                                     }
                                 }
                             }
@@ -353,85 +453,160 @@ Item {
                             visible: false
                         }
 
-                        // دکمه ثبت
-                        Button {
-                            id: submitButton
-                            text: newPatientRoot.isEditMode ? "به‌روزرسانی اطلاعات" : "ثبت بیمار"
+                        // دکمه ثبت با طراحی مدرن و انیمیشن
+                        Item {
                             Layout.preferredWidth: 200
                             Layout.preferredHeight: 50
                             Layout.alignment: Qt.AlignHCenter
                             Layout.topMargin: 10
 
-                            font {
-                                family: "Tahoma"
-                                pixelSize: 16
-                                bold: true
-                            }
-
-                            background: Rectangle {
-                                color: submitButton.down ? "#388E3C" : "#4CAF50"
+                            Rectangle {
+                                id: buttonShadow
+                                anchors.centerIn: parent
+                                width: submitButton.width + 4
+                                height: submitButton.height + 4
                                 radius: 25
+                                color: "#30000000"
+                                visible: !submitButton.pressed
+                            }
 
-                                Behavior on color {
-                                    ColorAnimation { duration: 150 }
+                            Button {
+                                id: submitButton
+                                anchors.centerIn: parent
+                                width: 200
+                                height: 50
+                                text: newPatientRoot.isEditMode ? "به‌روزرسانی اطلاعات" : "ثبت بیمار"
+
+                                font {
+                                    family: "Tahoma"
+                                    pixelSize: 16
+                                    bold: true
                                 }
-                            }
 
-                            contentItem: Text {
-                                text: submitButton.text
-                                font: submitButton.font
-                                color: "white"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
+                                background: Rectangle {
+                                    color: submitButton.pressed ? "#388E3C" : "#4CAF50"
+                                    radius: 25
 
-                            onClicked: {
-                                // بررسی اعتبار فیلدها
-                                var isValid = true
+                                    Behavior on color {
+                                        ColorAnimation { duration: 150 }
+                                    }
+                                }
 
-                                // بررسی کد ملی
-                                if (!newPatientRoot.isEditMode) {
-                                    if (codemeliField.text.length !== 10) {
-                                        codemeliError.visible = true
+                                // افکت موج دایره‌ای هنگام کلیک
+                                Rectangle {
+                                    id: ripple
+                                    property real size: 0
+                                    property real xPosition: width / 2
+                                    property real yPosition: height / 2
+
+                                    x: xPosition - size/2
+                                    y: yPosition - size/2
+                                    height: size
+                                    width: size
+                                    radius: size/2
+                                    color: "white"
+                                    opacity: 0
+
+                                    NumberAnimation {
+                                        id: rippleAnimation
+                                        target: ripple
+                                        property: "size"
+                                        from: 0
+                                        to: submitButton.width * 2
+                                        duration: 300
+                                        easing.type: Easing.OutQuad
+                                    }
+
+                                    NumberAnimation {
+                                        id: opacityAnimation
+                                        target: ripple
+                                        property: "opacity"
+                                        from: 0.3
+                                        to: 0
+                                        duration: 300
+                                        easing.type: Easing.OutQuad
+                                    }
+                                }
+
+                                contentItem: Text {
+                                    text: submitButton.text
+                                    font: submitButton.font
+                                    color: "white"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                // افکت تغییر اندازه هنگام کلیک
+                                transform: Scale {
+                                    id: buttonScale
+                                    origin.x: submitButton.width / 2
+                                    origin.y: submitButton.height / 2
+                                    xScale: submitButton.pressed ? 0.95 : 1.0
+                                    yScale: submitButton.pressed ? 0.95 : 1.0
+
+                                    Behavior on xScale {
+                                        NumberAnimation { duration: 100 }
+                                    }
+                                    Behavior on yScale {
+                                        NumberAnimation { duration: 100 }
+                                    }
+                                }
+
+                                onPressedChanged: {
+                                    if (pressed) {
+                                        rippleAnimation.start()
+                                        opacityAnimation.start()
+                                    }
+                                }
+
+                                onClicked: {
+                                    // بررسی اعتبار فیلدها
+                                    var isValid = true
+
+                                    // بررسی کد ملی
+                                    if (!newPatientRoot.isEditMode) {
+                                        if (codemeliField.text.length !== 10) {
+                                            codemeliError.visible = true
+                                            isValid = false
+                                        } else {
+                                            codemeliError.visible = false
+                                        }
+                                    }
+
+                                    // بررسی نام
+                                    if (nameField.text.trim() === "") {
+                                        nameError.visible = true
                                         isValid = false
                                     } else {
-                                        codemeliError.visible = false
+                                        nameError.visible = false
                                     }
-                                }
 
-                                // بررسی نام
-                                if (nameField.text.trim() === "") {
-                                    nameError.visible = true
-                                    isValid = false
-                                } else {
-                                    nameError.visible = false
-                                }
+                                    if (isValid) {
+                                        formError.visible = false
 
-                                if (isValid) {
-                                    formError.visible = false
+                                        // تعیین جنسیت (1 برای مرد، 0 برای زن)
+                                        var gender = maleRadio.checked ? 1 : 0
 
-                                    // تعیین جنسیت (1 برای مرد، 0 برای زن)
-                                    var gender = maleRadio.checked ? 1 : 0
-
-                                    // ثبت یا به‌روزرسانی اطلاعات بیمار
-                                    if (newPatientRoot.isEditMode) {
-                                        patientBackend.updatePatient(
-                                            newPatientRoot.currentPatientCodemeli,
-                                            nameField.text.trim(),
-                                            parseInt(ageField.text || "0"),
-                                            gender
-                                        )
+                                        // ثبت یا به‌روزرسانی اطلاعات بیمار
+                                        if (newPatientRoot.isEditMode) {
+                                            patientBackend.updatePatient(
+                                                newPatientRoot.currentPatientCodemeli,
+                                                nameField.text.trim(),
+                                                parseInt(ageField.text || "0"),
+                                                gender
+                                            )
+                                        } else {
+                                            patientBackend.addPatient(
+                                                codemeliField.text,
+                                                nameField.text.trim(),
+                                                parseInt(ageField.text || "0"),
+                                                gender
+                                            )
+                                        }
                                     } else {
-                                        patientBackend.addPatient(
-                                            parseInt(codemeliField.text),
-                                            nameField.text.trim(),
-                                            parseInt(ageField.text || "0"),
-                                            gender
-                                        )
+                                        formError.text = "لطفاً اطلاعات را به درستی وارد کنید"
+                                        formError.visible = true
                                     }
-                                } else {
-                                    formError.text = "لطفاً اطلاعات را به درستی وارد کنید"
-                                    formError.visible = true
                                 }
                             }
                         }
@@ -450,11 +625,21 @@ Item {
                 // نمایش پیام موفقیت
                 showToast(message)
 
+                // ذخیره کد ملی برای جستجوی بعدی
+                var savedCode = codemeliField.text
+
                 // بازگشت به صفحه قبل
-                stackView.pop()
+                console.log("Patient added successfully, going back")
+                backRequested()
+
+                // استفاده از stackView اگر تنظیم شده باشد
+                if (stackView) {
+                    console.log("Using provided stackView to pop after patient added")
+                    stackView.pop()
+                }
 
                 // جستجوی بیمار تازه ثبت شده
-                patientBackend.searchPatient(parseInt(codemeliField.text))
+                patientBackend.searchPatient(savedCode)
             } else {
                 // نمایش پیام خطا
                 formError.text = message
@@ -467,11 +652,21 @@ Item {
                 // نمایش پیام موفقیت
                 showToast(message)
 
+                // ذخیره کد ملی برای جستجوی بعدی
+                var savedCode = newPatientRoot.currentPatientCodemeli
+
                 // بازگشت به صفحه قبل
-                stackView.pop()
+                console.log("Patient updated successfully, going back")
+                backRequested()
+
+                // استفاده از stackView اگر تنظیم شده باشد
+                if (stackView) {
+                    console.log("Using provided stackView to pop after patient updated")
+                    stackView.pop()
+                }
 
                 // جستجوی بیمار به‌روزرسانی شده
-                patientBackend.searchPatient(newPatientRoot.currentPatientCodemeli)
+                patientBackend.searchPatient(savedCode)
             } else {
                 // نمایش پیام خطا
                 formError.text = message
@@ -480,9 +675,9 @@ Item {
         }
     }
 
-    // کامپوننت نمایش پیام موقت (Toast)
+    // کامپوننت نمایش پیام موقت (Toast) با انیمیشن
     function showToast(message) {
-        toast.text = message
+        toastText.text = message
         toast.opacity = 1
         toastTimer.start()
     }
@@ -498,6 +693,16 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 20
 
+        // سایه برای toast با استفاده از Rectangle
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width + 4
+            height: parent.height + 4
+            radius: 25
+            color: "#40000000"
+            z: -1
+        }
+
         Text {
             id: toastText
             text: ""
@@ -509,6 +714,7 @@ Item {
             anchors.centerIn: parent
         }
 
+        // انیمیشن ظاهر و مخفی شدن
         Behavior on opacity {
             NumberAnimation { duration: 300 }
         }
@@ -524,16 +730,19 @@ Item {
     Component.onCompleted: {
         console.log("NewPatientPage loaded - isEditMode:", isEditMode,
                     "searchedCodemeli:", searchedCodemeli,
-                    "currentPatientCodemeli:", currentPatientCodemeli)
+                    "currentPatientCodemeli:", currentPatientCodemeli,
+                    "stackView available:", stackView !== null)
 
         // اطمینان از اینکه پیام‌های خطا مخفی هستند
         formError.visible = false
         codemeliError.visible = false
         nameError.visible = false
 
-        // اطلاعات دیباگ برای بررسی مقادیر
-        console.log("Initial field values - codemeliField:", codemeliField.text,
-                    "nameField:", nameField.text,
-                    "ageField:", ageField.text)
+        // فوکوس روی اولین فیلد قابل ویرایش
+        if (!isEditMode) {
+            codemeliField.forceActiveFocus()
+        } else {
+            nameField.forceActiveFocus()
+        }
     }
 }

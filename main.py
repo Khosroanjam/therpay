@@ -343,7 +343,7 @@ def main():
 
     # تنظیم مسیر فایل‌های QML
     qml_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UntitledProject1Content")
-    main_qml = os.path.join(qml_dir, "Main.qml")
+    main_qml = os.path.join(qml_dir, "MainWindow.qml")
     print(main_qml)
     
     # بارگذاری فایل QML اصلی
