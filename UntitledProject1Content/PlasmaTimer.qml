@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+
 Item {
     id: plasmaTimerRoot
     width: parent.width
@@ -11,8 +12,10 @@ Item {
     signal goBack()
 
     // پراپرتی‌های بیمار و درمان
+    property int patientId: 0
     property string patientCodemeli: ""
     property string patientName: ""
+    property int diseaseId: 0
     property string diseaseName: ""
     property int initialMinutes: 2
     property int initialSeconds: 0
@@ -181,6 +184,7 @@ Item {
                             id: diseaseNameText
                             width: parent.width
                             text: "نوع درمان: " + diseaseName
+                            //text: patientId + "" + diseaseId
                             font {
                                 family: "Tahoma"
                                 pixelSize: 16
@@ -573,18 +577,56 @@ Item {
                 }
             }
 
-            // دکمه ذخیره زمان به عنوان پیش‌فرض
-            Button {
-                id: saveDefaultTimeButton
+            // دکمه‌های اضافی
+            RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 50
+                spacing: 10
                 visible: !isRunning
 
+                // دکمه نمایش تاریخچه جلسات
+                Button {
+                    id: showHistoryButton
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 50
+
+                    contentItem: Text {
+                        text: "تاریخچه جلسات"
+                        font {
+                            family: "Tahoma"
+                            pixelSize: 16
+                            bold: true
+                        }
+                        color: "#795548"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        radius: 10
+                        color: "#EFEBE9"
+                        border.color: "#795548"
+                        border.width: 1
+                    }
+
+                    onClicked: {
+                        showSessionHistory()
+                    }
+                }
+            }
+
+            // دکمه ذخیره دستی جلسه
+            Button {
+                id: manualSaveButton
+                Layout.fillWidth: true
+                Layout.preferredHeight: 50
+                visible: isCompleted // فقط زمانی نمایش داده می‌شود که تایمر به پایان رسیده باشد
+
                 contentItem: Text {
-                    text: "ذخیره به عنوان زمان پیش‌فرض"
+                    text: "ذخیره مجدد جلسه"
                     font {
                         family: "Tahoma"
-                        pixelSize: 14
+                        pixelSize: 16
+                        bold: true
                     }
                     color: "#1976D2"
                     horizontalAlignment: Text.AlignHCenter
@@ -599,12 +641,8 @@ Item {
                 }
 
                 onClicked: {
-                    var success = diseaseBackend.updateDiseaseTime(diseaseName, minutes, seconds)
-                    if (success) {
-                        showToast("زمان پیش‌فرض با موفقیت ذخیره شد")
-                    } else {
-                        showToast("خطا در ذخیره زمان پیش‌فرض")
-                    }
+                    saveTherapySession()
+                    showToast("جلسه درمانی مجدداً ذخیره شد")
                 }
             }
         }
@@ -618,15 +656,26 @@ Item {
         running: isRunning
         onTriggered: {
             if (seconds > 0) {
+                logger.log("Seconds in Timer : " + seconds)
                 seconds--
             } else if (minutes > 0) {
                 minutes--
                 seconds = 59
+                logger.log("Minutes in Timer : " + minutes)
             } else {
                 // اتمام زمان
+                logger.log("In TO TIMER")
                 isRunning = false
                 isCompleted = true
-                showToast("زمان درمان به پایان رسید")
+                try {
+                    showToast("زمان درمان به پایان رسید")
+                    logger.log("زمان درمان به اتمام رسید")
+                    logger.log("Befor Save Save Therapy")
+                    // ذخیره جلسه در دیتابیس
+                    saveTherapySession()
+                } catch (error){
+                    logger.log("ERROR : " + error)
+                }
             }
 
             // به‌روزرسانی مقدار پیشرفت
@@ -648,7 +697,12 @@ Item {
         if (isRunning) {
             isCompleted = false
             // به‌روزرسانی زمان کل در صورت تغییر
-            totalTimeInSeconds = (initialMinutes * 60) + initialSeconds
+            totalTimeInSeconds = (minutes * 60) + seconds
+            initialMinutes = minutes
+            initialSeconds = seconds
+            showToast("تایمر شروع شد - در پایان زمان، جلسه ذخیره خواهد شد")
+        } else {
+            showToast("تایمر متوقف شد")
         }
 
         // به‌روزرسانی نمایش انیمیشن
@@ -663,6 +717,92 @@ Item {
         seconds = initialSeconds
         updateProgress()
         progressCanvas.requestPaint()
+        showToast("تایمر به حالت اولیه برگشت")
+    }
+
+    // تابع ذخیره جلسه تراپی
+    function saveTherapySession() {
+        try {
+            logger.log("saveTherapySession running");
+            // اگر تایمر به صورت کامل اجرا شده باشد
+            if (isCompleted) {
+                // بررسی معتبر بودن شناسه‌ها
+                logger.log("ذخیره جلسه - شناسه بیمار: " + patientId + " شناسه درمان: " + diseaseId);
+
+                if (patientId <= 0 || diseaseId <= 0) {
+                    logger.log("شناسه بیمار یا بیماری نامعتبر است");
+
+                    // تلاش مجدد برای یافتن شناسه‌ها
+                    if (patientId <= 0 && patientCodemeli) {
+                        patientId = patientBackend.getPatientIdByCodeMeli(patientCodemeli);
+                        logger.log("تلاش مجدد - شناسه بیمار: " + patientId);
+                    }
+
+                    if (diseaseId <= 0 && diseaseName) {
+                        var diseaseInfo = diseaseBackend.getDiseaseInfo(diseaseName);
+                        if (diseaseInfo && diseaseInfo.id) {
+                            diseaseId = diseaseInfo.id;
+                            logger.log("تلاش مجدد - شناسه بیماری: " + diseaseId);
+                        }
+                    }
+
+                    // بررسی مجدد شناسه‌ها
+                    if (patientId <= 0 || diseaseId <= 0) {
+                        logger.log("خطا: شناسه بیمار یا بیماری همچنان نامعتبر است");
+                        showToast("خطا: اطلاعات بیمار یا نوع درمان ناقص است");
+                        return;
+                    }
+                }
+
+                logger.log("در حال ذخیره جلسه با مقادیر: patientId=" + patientId +
+                          " diseaseId=" + diseaseId +
+                          " minutes=" + initialMinutes +
+                          " seconds=" + initialSeconds);
+
+                var success = sessionBackend.addSession(
+                    patientId,
+                    diseaseId,
+                    initialMinutes,
+                    initialSeconds,
+                    ""  // یادداشت خالی
+                );
+
+                logger.log("نتیجه ذخیره جلسه: " + success);
+
+                if (success) {
+                    logger.log("جلسه با موفقیت ذخیره شد");
+                    showToast("جلسه درمانی با موفقیت در تاریخچه ذخیره شد");
+                } else {
+                    logger.log("خطا در ذخیره جلسه");
+                    showToast("خطا در ذخیره جلسه درمانی");
+                }
+            } else {
+                logger.log("تایمر به پایان نرسیده است، جلسه ذخیره نمی‌شود");
+            }
+        } catch (error) {
+            logger.log("ERROR in saveTherapySession: " + error);
+        }
+    }
+    // تابع نمایش تاریخچه جلسات
+    function showSessionHistory() {
+        var component = Qt.createComponent("TherapyHistory.qml")
+        if (component.status === Component.Ready) {
+            var historyPage = component.createObject(plasmaTimerRoot.parent, {
+                "patientId": patientId,
+                "patientName": patientName,
+                "patientCodemeli": patientCodemeli
+            })
+
+            historyPage.goBack.connect(function() {
+                historyPage.destroy()
+                plasmaTimerRoot.visible = true
+            })
+
+            plasmaTimerRoot.visible = false
+        } else {
+            console.log("خطا در بارگذاری صفحه تاریخچه:", component.errorString())
+            showToast("خطا در بارگذاری صفحه تاریخچه")
+        }
     }
 
     // دیالوگ تایید خروج
@@ -684,9 +824,14 @@ Item {
 
     // کامپوننت نمایش پیام موقت (Toast)
     function showToast(message) {
-        toast.text = message
-        toast.opacity = 1
-        toastTimer.start()
+        try {
+            logger.log("Showing toast: " + message);
+            toastText.text = message;  // به جای toast.text از toastText.text استفاده کنید
+            toast.opacity = 1;
+            toastTimer.start();
+        } catch (error) {
+            logger.log("ERROR in showToast: " + error);
+        }
     }
 
     Rectangle {
@@ -723,15 +868,38 @@ Item {
     }
 
     Component.onCompleted: {
-        console.log("PlasmaTimer loaded - patientName:", patientName,
-                    "diseaseName:", diseaseName,
-                    "initialMinutes:", initialMinutes,
-                    "initialSeconds:", initialSeconds)
+        logger.log("PlasmaTimer loaded - patientId:"+ patientId+
+                    "patientName:"+patientName+ "-"+
+                    "diseaseId:"+ diseaseId+ "-"+
+                    "diseaseName:"+ diseaseName+ "-"+
+                    "initialMinutes:"+ initialMinutes+ "-"+
+                    "initialSeconds:"+ initialSeconds+ "-"+
+                    "patientCodemeli:"+ patientCodemeli)
+
+        // اگر patientId صفر باشد، سعی کنید آن را بر اساس کد ملی پیدا کنید
+        if (patientId <= 0 && patientCodemeli) {
+            logger.log("تلاش برای یافتن شناسه بیمار با کد ملی:"+ patientCodemeli)
+            patientId = patientBackend.getPatientIdByCodeMeli(patientCodemeli)
+            logger.log("شناسه بیمار یافت شده:"+patientId)
+        }
+
+        // اگر diseaseId صفر باشد، سعی کنید آن را بر اساس نام بیماری پیدا کنید
+        if (diseaseId <= 0 && diseaseName) {
+            console.log("تلاش برای یافتن شناسه بیماری با نام:"+diseaseName)
+            var diseaseInfo = diseaseBackend.getDiseaseInfo(diseaseName)
+            if (diseaseInfo && diseaseInfo.id) {
+                diseaseId = diseaseInfo.id
+                console.log("شناسه بیماری یافت شده:"+ diseaseId)
+            }
+        }
 
         // تنظیم مقادیر اولیه
         minutes = initialMinutes
+        logger.log("Minutes : " + minutes)
         seconds = initialSeconds
+        logger.log("seconds : " + seconds)
         updateProgress()
         progressCanvas.requestPaint()
+
     }
 }

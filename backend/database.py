@@ -10,8 +10,25 @@ class DatabaseManager:
     def __init__(self, db_name="plasma.db"):
         """مقداردهی اولیه و ایجاد دیتابیس"""
         # تعیین مسیر دیتابیس در کنار فایل اجرایی
-        base_dir = "/home/plasma/Documents" #Path(__file__).parent.parent
-        self.db_path = os.path.join(base_dir, db_name)
+        try:
+            # اول تلاش کنید از مسیر نسبی استفاده کنید
+            base_dir = Path(__file__).parent.parent
+            self.db_path = os.path.join(base_dir, db_name)
+            
+            # تست دسترسی نوشتن
+            test_file = os.path.join(base_dir, ".test_write")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+            
+            print(f"استفاده از مسیر دیتابیس: {self.db_path}")
+        except (IOError, PermissionError):
+            # اگر دسترسی نوشتن نداشتید، از مسیر کاربر استفاده کنید
+            user_dir = os.path.expanduser("~")
+            base_dir = os.path.join(user_dir, ".plasma_app")
+            os.makedirs(base_dir, exist_ok=True)
+            self.db_path = os.path.join(base_dir, db_name)
+            print(f"استفاده از مسیر دیتابیس کاربر: {self.db_path}")
         
         # ایجاد دیتابیس و جداول مورد نیاز
         self.initialize_database()
@@ -337,9 +354,6 @@ class OperatorManager:
         
         return self.db_manager.execute_query(query)
     
-
-# اضافه کردن این کلاس به انتهای فایل database.py موجود شما
-
 class DiseaseManager:
     """کلاس مدیریت بیماری‌ها و زمان‌های پیش‌فرض آن‌ها"""
     
@@ -543,3 +557,183 @@ class DiseaseManager:
             return True, "بیماری با موفقیت حذف شد."
         except Exception as e:
             return False, f"خطا در حذف بیماری: {str(e)}"
+
+        
+class TherapySessionManager:
+    def __init__(self, db_manager=None):
+        self.db_manager = db_manager or DatabaseManager()
+        self._initialize_session_table()
+    
+    def _initialize_session_table(self):
+        """ایجاد جدول جلسات تراپی اگر وجود نداشته باشد"""
+        try:
+            # بررسی وجود جدول therapy_sessions
+            check_table_query = """
+            SELECT name FROM sqlite_master WHERE type='table' AND name='therapy_sessions';
+            """
+            table_exists = self.db_manager.execute_query(check_table_query, fetch_one=True)
+            
+            if not table_exists:
+                # ایجاد جدول جلسات تراپی
+                create_table_query = """
+                CREATE TABLE therapy_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    patient_id INTEGER NOT NULL,
+                    disease_id INTEGER NOT NULL,
+                    session_date TEXT NOT NULL,
+                    duration_minutes INTEGER NOT NULL,
+                    duration_seconds INTEGER NOT NULL,
+                    notes TEXT,
+                    completed INTEGER DEFAULT 1,
+                    FOREIGN KEY (patient_id) REFERENCES patients (id),
+                    FOREIGN KEY (disease_id) REFERENCES diseases (id)
+                );
+                """
+                self.db_manager.execute_query(create_table_query)
+                print("جدول جلسات تراپی با موفقیت ایجاد شد.")
+        
+        except Exception as e:
+            print(f"خطا در ایجاد جدول جلسات تراپی: {e}")
+            raise
+    
+    def add_session(self, patient_id, disease_id, minutes, seconds, notes=""):
+        """افزودن یک جلسه تراپی جدید"""
+        try:
+            # بررسی اعتبار پارامترها
+            if patient_id <= 0:
+                print(f"خطا: شناسه بیمار نامعتبر است: {patient_id}")
+                return False, "شناسه بیمار نامعتبر است"
+                
+            if disease_id <= 0:
+                print(f"خطا: شناسه بیماری نامعتبر است: {disease_id}")
+                return False, "شناسه بیماری نامعتبر است"
+            
+            # بررسی وجود بیمار و بیماری
+            patient_check = self.db_manager.execute_query(
+                "SELECT id FROM patients WHERE id = ?", (patient_id,), fetch_one=True)
+            if not patient_check:
+                print(f"خطا: بیمار با شناسه {patient_id} یافت نشد")
+                return False, "بیمار یافت نشد"
+                
+            disease_check = self.db_manager.execute_query(
+                "SELECT id FROM diseases WHERE id = ?", (disease_id,), fetch_one=True)
+            if not disease_check:
+                print(f"خطا: بیماری با شناسه {disease_id} یافت نشد")
+                return False, "بیماری یافت نشد"
+            
+            current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            query = '''
+            INSERT INTO therapy_sessions 
+            (patient_id, disease_id, session_date, duration_minutes, duration_seconds, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+            '''
+            
+            self.db_manager.execute_query(query, 
+                (patient_id, disease_id, current_date, minutes, seconds, notes))
+            
+            print(f"جلسه تراپی با موفقیت ثبت شد. بیمار: {patient_id}, درمان: {disease_id}")
+            return True, "جلسه تراپی با موفقیت ثبت شد."
+        except Exception as e:
+            print(f"خطا در افزودن جلسه تراپی: {e}")
+            return False, str(e)
+    
+    def get_patient_sessions(self, patient_id):
+        """دریافت تمام جلسات یک بیمار"""
+        try:
+            query = '''
+            SELECT 
+                ts.id, 
+                ts.session_date, 
+                d.name AS disease_name, 
+                ts.duration_minutes, 
+                ts.duration_seconds, 
+                ts.notes,
+                ts.completed
+            FROM therapy_sessions ts
+            JOIN diseases d ON ts.disease_id = d.id
+            WHERE ts.patient_id = ?
+            ORDER BY ts.session_date DESC
+            '''
+            
+            rows = self.db_manager.execute_query(query, (patient_id,))
+            
+            sessions = []
+            for row in rows:
+                sessions.append({
+                    'id': row[0],
+                    'session_date': row[1],
+                    'disease_name': row[2],
+                    'duration_minutes': row[3],
+                    'duration_seconds': row[4],
+                    'notes': row[5],
+                    'completed': bool(row[6])
+                })
+            return sessions
+        except Exception as e:
+            print(f"خطا در دریافت جلسات بیمار: {e}")
+            return []
+    
+    def get_session_details(self, session_id):
+        """دریافت جزئیات یک جلسه"""
+        try:
+            query = '''
+            SELECT 
+                ts.id, 
+                p.name AS patient_name,
+                p.codemeli,
+                d.name AS disease_name, 
+                ts.session_date, 
+                ts.duration_minutes, 
+                ts.duration_seconds, 
+                ts.notes,
+                ts.completed
+            FROM therapy_sessions ts
+            JOIN patients p ON ts.patient_id = p.id
+            JOIN diseases d ON ts.disease_id = d.id
+            WHERE ts.id = ?
+            '''
+            
+            row = self.db_manager.execute_query(query, (session_id,), fetch_one=True)
+            if row:
+                return {
+                    'id': row[0],
+                    'patient_name': row[1],
+                    'national_id': row[2],
+                    'disease_name': row[3],
+                    'session_date': row[4],
+                    'duration_minutes': row[5],
+                    'duration_seconds': row[6],
+                    'notes': row[7],
+                    'completed': bool(row[8])
+                }
+            return None
+        except Exception as e:
+            print(f"خطا در دریافت جزئیات جلسه: {e}")
+            return None
+    
+    def update_session(self, session_id, minutes, seconds, notes, completed=True):
+        """به‌روزرسانی اطلاعات یک جلسه"""
+        try:
+            query = '''
+            UPDATE therapy_sessions
+            SET duration_minutes = ?, duration_seconds = ?, notes = ?, completed = ?
+            WHERE id = ?
+            '''
+            
+            self.db_manager.execute_query(query, 
+                (minutes, seconds, notes, 1 if completed else 0, session_id))
+            
+            return True, "جلسه با موفقیت به‌روزرسانی شد."
+        except Exception as e:
+            print(f"خطا در به‌روزرسانی جلسه تراپی: {e}")
+            return False, str(e)
+    
+    def delete_session(self, session_id):
+        """حذف یک جلسه"""
+        try:
+            query = 'DELETE FROM therapy_sessions WHERE id = ?'
+            self.db_manager.execute_query(query, (session_id,))
+            return True, "جلسه با موفقیت حذف شد."
+        except Exception as e:
+            print(f"خطا در حذف جلسه تراپی: {e}")
+            return False, str(e)

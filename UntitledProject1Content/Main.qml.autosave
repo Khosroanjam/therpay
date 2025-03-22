@@ -277,7 +277,7 @@ Window {
                                            console.error("Backend is not available")
                                        }
                                    }
-                               }
+                               }    
 
                             // فراخوانی تابع backend برای بررسی اعتبار کد
                             onClicked: {

@@ -8,7 +8,7 @@ Window {
     id: rootWindow
     visible: true
     width: 800
-    height: 700
+    height: 800
     title: "Plasma Company"
 
     // StackView برای مدیریت صفحات مختلف

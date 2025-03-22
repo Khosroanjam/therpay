@@ -2,14 +2,16 @@ import os
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl
+from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QCoreApplication
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from backend.logic import LoginManager
-
+from backend.logger import Logger
 from backend.logic import LoginManager
-from backend.database import PatientManager, DiseaseManager  # اضافه کردن DiseaseManager
+from backend.database import PatientManager, DiseaseManager, TherapySessionManager
+#from PySide6.QtCore import QtMsgType, qInstallMessageHandler
+
 
 class Backend(QObject):
     # سیگنال‌ها برای ارتباط با QML
@@ -20,6 +22,17 @@ class Backend(QObject):
         super().__init__()
         self._login_manager = LoginManager()
     
+    @Slot()
+    def exitApplication(self):
+        print("Exiting application...")
+        # انجام کارهای پاکسازی اگر نیاز است
+        QCoreApplication.quit()  # بستن برنامه پایتون
+    def cleanup_before_exit():
+        print("Application is about to quit. Performing cleanup...")
+        
+        # انجام کارهای پاکسازی عمومی
+
+
     @Slot(int, result=bool)
     def validateOperatorCode(self, code):
         """بررسی اعتبار کد اپراتوری"""
@@ -123,7 +136,20 @@ class PatientBackend(QObject):
             error_msg = f"خطا در حذف بیمار: {str(e)}"
             print(error_msg)
             self.errorOccurred.emit(error_msg)
-
+    @Slot(str, result=int)
+    def getPatientIdByCodeMeli(self, codemeli):
+        """دریافت شناسه بیمار با کد ملی"""
+        try:
+            query = "SELECT id FROM patients WHERE codemeli = ?"
+            result = self._patient_manager.db_manager.execute_query(query, (codemeli,), fetch_one=True)
+            if result:
+                print(f"شناسه بیمار با کد ملی {codemeli}: {result[0]}")
+                return result[0]
+            print(f"بیماری با کد ملی {codemeli} یافت نشد")
+            return 0
+        except Exception as e:
+            print(f"خطا در دریافت شناسه بیمار: {e}")
+            return 0
 
 # اضافه کردن کلاس جدید برای مدیریت بیماری‌ها
 class DiseaseBackend(QObject):
@@ -232,23 +258,88 @@ class DiseaseBackend(QObject):
             self.errorOccurred.emit(error_msg)
             return False
 
+class TherapySessionBackend(QObject):
+    """کلاس واسط برای مدیریت جلسات تراپی در QML"""
+    
+    # سیگنال برای اعلام به‌روزرسانی جلسات
+    sessionUpdated = Signal()
+    
+    def __init__(self):
+        """مقداردهی اولیه"""
+        super().__init__()
+        # اتصال به دیتابیس
+        self.session_manager = TherapySessionManager()
+    
+    @Slot(int, int, int, int, str, result=bool)
+    def addSession(self, patient_id, disease_id, minutes, seconds, notes=""):
+        """افزودن یک جلسه جدید"""
+        print(f"درخواست افزودن جلسه: patient_id={patient_id}, disease_id={disease_id}, minutes={minutes}, seconds={seconds}")
+        if patient_id <= 0 or disease_id <= 0:
+            print("خطا: شناسه بیمار یا بیماری نامعتبر است")
+            return False
+            
+        try:
+            success, message = self.session_manager.add_session(patient_id, disease_id, minutes, seconds, notes)
+            print(f"نتیجه افزودن جلسه: {success}, {message}")
+            if success:
+                self.sessionUpdated.emit()
+            else:
+                print(f"عدم اجرای success")
+            return success
+        except Exception as e:
+            print(f"خطا در افزودن جلسه: {e}")
+            return False
+    
+    @Slot(int, result='QVariantList')
+    def getPatientSessions(self, patient_id):
+        """دریافت لیست جلسات یک بیمار"""
+        return self.session_manager.get_patient_sessions(patient_id)
+    
+    @Slot(int, result='QVariant')
+    def getSessionDetails(self, session_id):
+        """دریافت جزئیات یک جلسه"""
+        return self.session_manager.get_session_details(session_id)
+    
+    @Slot(int, int, int, str, bool, result=bool)
+    def updateSession(self, session_id, minutes, seconds, notes, completed=True):
+        """به‌روزرسانی اطلاعات یک جلسه"""
+        success, _ = self.session_manager.update_session(session_id, minutes, seconds, notes, completed)
+        if success:
+            self.sessionUpdated.emit()
+        return success
+    
+    @Slot(int, result=bool)
+    def deleteSession(self, session_id):
+        """حذف یک جلسه"""
+        success, _ = self.session_manager.delete_session(session_id)
+        if success:
+            self.sessionUpdated.emit()
+        return success
 
 def main():
     # ایجاد برنامه
     app = QGuiApplication(sys.argv)
-    
+     # اتصال به سیگنال بسته شدن آخرین پنجره
+    app.lastWindowClosed.connect(app.quit)
     # ایجاد موتور QML
     engine = QQmlApplicationEngine()
     
     # ایجاد نمونه backend
     backend = Backend()
     patient_backend = PatientBackend()
-    disease_backend = DiseaseBackend()  # اضافه کردن نمونه DiseaseBackend
-    
+    disease_backend = DiseaseBackend() 
+    session_backend = TherapySessionBackend()
+    logger = Logger()
+
     # قرار دادن backend در context موتور QML
     engine.rootContext().setContextProperty("backend", backend)
     engine.rootContext().setContextProperty("patientBackend", patient_backend)
-    engine.rootContext().setContextProperty("diseaseBackend", disease_backend)  # اضافه کردن به context
+    engine.rootContext().setContextProperty("diseaseBackend", disease_backend) 
+    engine.rootContext().setContextProperty("sessionBackend", session_backend)
+    engine.rootContext().setContextProperty("logger", logger)
+
+  
+
 
     # تنظیم مسیر فایل‌های QML
     qml_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UntitledProject1Content")
@@ -258,10 +349,15 @@ def main():
     # بارگذاری فایل QML اصلی
     engine.load(QUrl.fromLocalFile(main_qml))
     
+
+    
+
+
     # بررسی بارگذاری موفق
     if not engine.rootObjects():
         sys.exit(-1)
-    
+
+
     # اجرای برنامه
     sys.exit(app.exec())
 
