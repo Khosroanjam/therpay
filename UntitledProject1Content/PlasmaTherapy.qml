@@ -5,12 +5,14 @@ import QtQuick.Layouts
 
 Item {
     id: plasmaTherapyRoot
-    width: parent.width
-    height: parent.height
+    width: parent ? parent.width : 800
+    height: parent ? parent.height: 700
 
     // سیگنال برای بازگشت به صفحه قبل
-    signal goBack()
-
+    signal backRequested()
+    // اضافه کردن پراپرتی برای دسترسی به stackView
+    property var stackView: null
+    property var globalKeyboard: null
     // پراپرتی‌های بیمار
     property string patientCodemeli: ""
     property string patientName: ""
@@ -64,10 +66,23 @@ Item {
                     id: backMouseArea
                     anchors.fill: parent
                     onClicked: {
-                        goBack() // فراخوانی سیگنال بازگشت
+                        logger.log("Back button clicked in PlasmaTherapy")
+
+                        // فراخوانی سیگنال بازگشت
+                        backRequested()
+
+                        // استفاده مستقیم از stackView اگر تنظیم شده باشد
+                        if (stackView) {
+                            logger.log("Using stackView to pop in PlasmaTherapy")
+                            stackView.pop()
+                        } else {
+                            logger.error("stackView is not available in PlasmaTherapy")
+                        }
                     }
                 }
             }
+
+
 
             // عنوان صفحه
             Text {

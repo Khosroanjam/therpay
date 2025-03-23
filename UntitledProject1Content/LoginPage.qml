@@ -10,6 +10,27 @@ Item {
     // سیگنال برای اعلام ورود موفق
     signal loginSuccessful()
 
+    // کیبورد مجازی در سطح برنامه
+    VirtualKeyboard {
+        id: globalKeyboard
+        anchors.fill: parent
+        z: 1000
+    }
+
+    // MouseArea سراسری برای از دست دادن فوکوس
+    MouseArea {
+        id: globalMouseArea
+        anchors.fill: parent
+        z: -1  // زیر همه چیز
+
+        onClicked: {
+            // کلیک روی صفحه اصلی باعث از دست رفتن فوکوس کیبورد می‌شود
+            if (globalKeyboard.visible) {
+                forceActiveFocus()  // فوکوس را به پنجره اصلی بده
+            }
+        }
+    }
+
     // ColumnLayout برای تقسیم صفحه به دو بخش عمودی
     ColumnLayout {
         anchors.fill: parent
@@ -61,6 +82,17 @@ Item {
                         font.family: "Tahoma"
                         horizontalAlignment: TextInput.AlignHCenter
                         selectByMouse: true
+                        inputMethodHints: Qt.ImhDigitsOnly
+                        // MouseArea برای نمایش کیبورد
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                modernTextField.forceActiveFocus()
+                                // استفاده از تابع show به جای attachTo
+                                globalKeyboard.show(modernTextField)
+                                mouse.accepted = false
+                            }
+                        }
 
                         // رنگ متن
                         color: "#333333"
@@ -234,6 +266,9 @@ Item {
 
                         // فراخوانی تابع backend برای بررسی اعتبار کد
                         onClicked: {
+                            // مخفی کردن کیبورد قبل از بررسی
+                            globalKeyboard.hide()
+
                             if (backend) {
                                 if (backend.validateOperatorCode(modernTextField.text)) {
                                     loginSuccessful()

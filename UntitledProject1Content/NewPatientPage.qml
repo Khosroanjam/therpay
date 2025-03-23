@@ -1,6 +1,7 @@
 // NewPatientPage.qml (توجه: اسم فایل باید دقیقاً همین باشد)
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 Item {
@@ -19,9 +20,25 @@ Item {
     property int patientGender: 1
     property string searchedCodemeli: ""  // پراپرتی برای دریافت کد ملی جستجو شده
     property var stackView: null  // پراپرتی برای دسترسی مستقیم به stackView
+    property var globalKeyboard: null  // پراپرتی برای دسترسی به کیبورد مجازی
 
     // متغیر برای ذخیره کد ملی جاری برای جستجوی مجدد پس از بازگشت
     property string codeToSearch: ""
+
+    // MouseArea سراسری برای از دست دادن فوکوس
+    MouseArea {
+        id: globalMouseArea
+        anchors.fill: parent
+        z: -1  // زیر همه چیز
+
+        onClicked: {
+            // کلیک روی صفحه اصلی باعث مخفی شدن کیبورد می‌شود
+            if (globalKeyboard && globalKeyboard.visible) {
+                globalKeyboard.hide()
+                forceActiveFocus()  // فوکوس را به صفحه اصلی بده
+            }
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -70,6 +87,11 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
+                        // مخفی کردن کیبورد قبل از بازگشت
+                        if (globalKeyboard && globalKeyboard.visible) {
+                            globalKeyboard.hide()
+                        }
+
                         console.log("Back button clicked, emitting backRequested signal")
 
                         // ارسال سیگنال بازگشت
@@ -223,6 +245,15 @@ Item {
                                         color: "transparent"
                                     }
 
+                                    // اضافه کردن onActiveFocusChanged برای مدیریت خودکار کیبورد
+                                    onActiveFocusChanged: {
+                                        if (activeFocus && globalKeyboard && enabled) {
+                                            globalKeyboard.show(codemeliField)
+                                        } else if (!activeFocus && globalKeyboard && globalKeyboard.visible) {
+                                            globalKeyboard.hide()
+                                        }
+                                    }
+
                                     onTextChanged: {
                                         var newText = text.replace(/[^0-9]/g, "")
                                         if (newText !== text) {
@@ -236,6 +267,21 @@ Item {
 
                                         // بررسی اعتبار در حین تایپ
                                         codemeliError.visible = (text.length > 0 && text.length !== 10)
+                                    }
+
+                                    // اضافه کردن MouseArea برای فوکوس و نمایش کیبورد
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        enabled: codemeliField.enabled
+                                        onClicked: {
+                                            if (codemeliField.enabled) {
+                                                codemeliField.forceActiveFocus()
+                                                if (globalKeyboard) {
+                                                    globalKeyboard.show(codemeliField)
+                                                }
+                                            }
+                                            mouse.accepted = false
+                                        }
                                     }
                                 }
                             }
@@ -291,9 +337,30 @@ Item {
                                         color: "transparent"
                                     }
 
+                                    // اضافه کردن onActiveFocusChanged برای مدیریت خودکار کیبورد
+                                    onActiveFocusChanged: {
+                                        if (activeFocus && globalKeyboard) {
+                                            globalKeyboard.show(nameField)
+                                        } else if (!activeFocus && globalKeyboard && globalKeyboard.visible) {
+                                            globalKeyboard.hide()
+                                        }
+                                    }
+
                                     onTextChanged: {
                                         // بررسی اعتبار در حین تایپ
                                         nameError.visible = (text.trim().length === 0 && activeFocus && !focus)
+                                    }
+
+                                    // اضافه کردن MouseArea برای فوکوس و نمایش کیبورد
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            nameField.forceActiveFocus()
+                                            if (globalKeyboard) {
+                                                globalKeyboard.show(nameField)
+                                            }
+                                            mouse.accepted = false
+                                        }
                                     }
                                 }
                             }
@@ -351,10 +418,31 @@ Item {
                                         color: "transparent"
                                     }
 
+                                    // اضافه کردن onActiveFocusChanged برای مدیریت خودکار کیبورد
+                                    onActiveFocusChanged: {
+                                        if (activeFocus && globalKeyboard) {
+                                            globalKeyboard.show(ageField)
+                                        } else if (!activeFocus && globalKeyboard && globalKeyboard.visible) {
+                                            globalKeyboard.hide()
+                                        }
+                                    }
+
                                     onTextChanged: {
                                         var newText = text.replace(/[^0-9]/g, "")
                                         if (newText !== text) {
                                             text = newText
+                                        }
+                                    }
+
+                                    // اضافه کردن MouseArea برای فوکوس و نمایش کیبورد
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            ageField.forceActiveFocus()
+                                            if (globalKeyboard) {
+                                                globalKeyboard.show(ageField)
+                                            }
+                                            mouse.accepted = false
                                         }
                                     }
                                 }
@@ -373,6 +461,11 @@ Item {
                                     pixelSize: 14
                                 }
                                 color: "#424242"
+                            }
+
+                            // اضافه کردن ButtonGroup برای مدیریت دکمه‌های رادیویی
+                            ButtonGroup {
+                                id: genderGroup
                             }
 
                             RowLayout {
@@ -394,6 +487,8 @@ Item {
                                         anchors.centerIn: parent
                                         text: "مرد"
                                         checked: isEditMode ? (patientGender === 1) : true
+                                        // اضافه کردن به ButtonGroup
+                                        ButtonGroup.group: genderGroup
 
                                         contentItem: Text {
                                             text: maleRadio.text
@@ -405,6 +500,14 @@ Item {
                                             color: maleRadio.checked ? "#2196F3" : "#424242"
                                             leftPadding: maleRadio.indicator.width + 4
                                             verticalAlignment: Text.AlignVCenter
+                                        }
+
+                                        onClicked: {
+                                            // مخفی کردن کیبورد هنگام انتخاب رادیو باتن
+                                            if (globalKeyboard && globalKeyboard.visible) {
+                                                globalKeyboard.hide()
+                                                forceActiveFocus()
+                                            }
                                         }
                                     }
                                 }
@@ -423,6 +526,8 @@ Item {
                                         anchors.centerIn: parent
                                         text: "زن"
                                         checked: isEditMode ? (patientGender === 0) : false
+                                        // اضافه کردن به ButtonGroup
+                                        ButtonGroup.group: genderGroup
 
                                         contentItem: Text {
                                             text: femaleRadio.text
@@ -434,6 +539,14 @@ Item {
                                             color: femaleRadio.checked ? "#E91E63" : "#424242"
                                             leftPadding: femaleRadio.indicator.width + 4
                                             verticalAlignment: Text.AlignVCenter
+                                        }
+
+                                        onClicked: {
+                                            // مخفی کردن کیبورد هنگام انتخاب رادیو باتن
+                                            if (globalKeyboard && globalKeyboard.visible) {
+                                                globalKeyboard.hide()
+                                                forceActiveFocus()
+                                            }
                                         }
                                     }
                                 }
@@ -560,6 +673,11 @@ Item {
                                 }
 
                                 onClicked: {
+                                    // مخفی کردن کیبورد قبل از ثبت
+                                    if (globalKeyboard && globalKeyboard.visible) {
+                                        globalKeyboard.hide()
+                                    }
+
                                     // بررسی اعتبار فیلدها
                                     var isValid = true
 
@@ -726,23 +844,42 @@ Item {
         }
     }
 
+    // تابع کمکی برای مدیریت فوکوس و کیبورد
+    function focusAndShowKeyboard(textField) {
+        if (textField) {
+            textField.forceActiveFocus()
+            if (globalKeyboard) {
+                globalKeyboard.show(textField)
+            }
+        }
+    }
+
     // وقتی صفحه نمایش داده می‌شود
     Component.onCompleted: {
         console.log("NewPatientPage loaded - isEditMode:", isEditMode,
                     "searchedCodemeli:", searchedCodemeli,
                     "currentPatientCodemeli:", currentPatientCodemeli,
-                    "stackView available:", stackView !== null)
+                    "stackView available:", stackView !== null,
+                    "globalKeyboard available:", globalKeyboard !== null)
 
         // اطمینان از اینکه پیام‌های خطا مخفی هستند
         formError.visible = false
         codemeliError.visible = false
         nameError.visible = false
 
-        // فوکوس روی اولین فیلد قابل ویرایش
+        // فوکوس روی اولین فیلد قابل ویرایش و نمایش کیبورد
         if (!isEditMode) {
-            codemeliField.forceActiveFocus()
+            // کمی تأخیر برای اطمینان از اینکه صفحه کاملاً بارگذاری شده است
+            Qt.callLater(function() {
+                if (codemeliField.enabled) {
+                    focusAndShowKeyboard(codemeliField)
+                }
+            })
         } else {
-            nameField.forceActiveFocus()
+            // کمی تأخیر برای اطمینان از اینکه صفحه کاملاً بارگذاری شده است
+            Qt.callLater(function() {
+                focusAndShowKeyboard(nameField)
+            })
         }
     }
 }

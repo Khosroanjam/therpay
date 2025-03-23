@@ -7,7 +7,7 @@ Window {
     id: mainWindow
     visible: true
     width: 800
-    height: 600
+    height: 700
     title: "Plasma Company"
 
     // این تابع هنگام بستن پنجره فراخوانی می‌شود
@@ -22,15 +22,33 @@ Window {
         initialItem: loginPage
     }
 
+    // کیبورد مجازی در سطح برنامه
+       VirtualKeyboard {
+           id: globalKeyboard
+           anchors.bottom: parent.bottom
+           visible: false
+           z: 1000
+       }
+
+       // تابع سراسری برای نمایش کیبورد
+       function showKeyboard(textField) {
+           globalKeyboard.attachTo(textField)
+           globalKeyboard.visible = true
+       }
+
     // کامپوننت صفحه ورود
-    Component {
-        id: loginPage
-        LoginPage {
-            onLoginSuccessful: {
-                stackView.replace(appPage)
-            }
-        }
-    }
+       Component {
+           id: loginPage
+           LoginPage {
+               onLoginSuccessful: {
+                   var appPageComponent = stackView.push("AppPage.qml")
+                   // ارسال کیبورد مجازی به AppPage
+                   if (appPageComponent) {
+                       appPageComponent.globalKeyboard = globalKeyboard
+                   }
+               }
+           }
+       }
 
     // کامپوننت صفحه اصلی برنامه
     Component {
