@@ -223,8 +223,7 @@ class PatientManager:
             return True, "بیمار با موفقیت حذف شد."
         except Exception as e:
             return False, f"خطا در حذف بیمار: {str(e)}"
-
-
+        
 class OperatorManager:
     """کلاس مدیریت اپراتورها"""
     
@@ -728,6 +727,41 @@ class TherapySessionManager:
             print(f"خطا در به‌روزرسانی جلسه تراپی: {e}")
             return False, str(e)
     
+    def getPatientSessionsInfo(self, patientId):
+        """
+        دریافت اطلاعات جلسات درمانی یک بیمار شامل تعداد کل جلسات و تاریخ آخرین جلسه
+        
+        :param patientId: شناسه بیمار
+        :return: دیکشنری حاوی تعداد جلسات و تاریخ آخرین جلسه
+        """
+        try:
+            # بررسی معتبر بودن شناسه بیمار
+            if not patientId or patientId <= 0:
+                print(f"Invalid patient ID: {patientId}")
+                return {"count": 0, "lastDate": ""}
+                
+            # اجرای کوئری برای دریافت تعداد و تاریخ آخرین جلسه
+            query = "SELECT COUNT(*) as count, MAX(date) as lastDate FROM therapy_sessions WHERE patient_id = ?"
+            print(query)
+            result = self.executeQuery(query, (patientId,))
+            
+            if result and len(result) > 0:
+                count = result[0]['count'] if 'count' in result[0] else 0
+                lastDate = result[0]['lastDate'] if 'lastDate' in result[0] else ""
+                
+                # تبدیل فرمت تاریخ به فرمت فارسی اگر نیاز است
+                if lastDate:
+                    
+                        
+                    print(f"Found {count} sessions for patient {patientId}, last session: {lastDate}")
+                    return {"count": count, "lastDate": lastDate}
+                
+            print(f"No sessions found for patient {patientId}")
+            return {"count": 0, "lastDate": ""}
+        except Exception as e:
+            print(f"Error in getPatientSessionsInfo: {e}")
+            return {"count": 0, "lastDate": ""}
+        
     def delete_session(self, session_id):
         """حذف یک جلسه"""
         try:

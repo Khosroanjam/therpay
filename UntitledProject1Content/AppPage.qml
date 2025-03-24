@@ -1,11 +1,12 @@
-// AppPage.qml - بدون نیاز به QtGraphicalEffects
+// AppPage.qml - با دکمه گزارش‌گیری
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Item {
     id: appPage
-    anchors.fill: parent
+    width: 800
+    height: 750
 
     // رنگ‌های اصلی برنامه
     property color primaryColor: "#3F51B5"
@@ -13,6 +14,7 @@ Item {
     property color backgroundColor: "#F5F5F5"
     property color cardColor: "#FFFFFF"
     property color textColor: "#333333"
+    property var reportBackend: null
 
     // اضافه کردن دسترسی به کیبورد مجازی سراسری
     property var globalKeyboard: null
@@ -76,6 +78,63 @@ Item {
                         bold: true
                     }
                     anchors.centerIn: parent
+                }
+
+                // دکمه گزارش‌گیری در گوشه سمت چپ هدر
+                Rectangle {
+                    id: reportButtonHeader
+                    width: 120
+                    height: 40
+                    radius: 20
+                    color: reportHeaderMouseArea.pressed ? Qt.darker("#4CAF50", 1.2) : "#4CAF50"
+                    anchors {
+                        left: parent.left
+                        leftMargin: 15
+                        verticalCenter: parent.verticalCenter
+                    }
+
+                    Text {
+                        text: "گزارش‌ها"
+                        color: "white"
+                        font {
+                            family: "Tahoma"
+                            pixelSize: 14
+                            bold: true
+                        }
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        id: reportHeaderMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+
+                        onClicked: {
+                            // مخفی کردن کیبورد قبل از تغییر صفحه
+                            if (globalKeyboard && globalKeyboard.visible) {
+                                globalKeyboard.hide()
+                            }
+
+                            logger.log("باز کردن صفحه گزارش‌گیری")
+                            // باز کردن صفحه ReportPage.qml
+                            var reportPage = appStackView.push("ReportPage.qml", {
+                                "stackView": appStackView,
+                                                                   "reportBackend": reportBackend
+                            })
+
+                            // اتصال به سیگنال بعد از push
+                            if (reportPage && reportPage.backRequested) {
+                                reportPage.backRequested.connect(function() {
+                                    logger.log("backRequested signal received from report page")
+                                    appStackView.pop()
+                                })
+                            }
+                        }
+                    }
+
+                    Behavior on color {
+                        ColorAnimation { duration: 100 }
+                    }
                 }
             }
 
@@ -340,7 +399,7 @@ Item {
                                                     globalKeyboard.hide()
                                                 }
 
-                                                console.log("ثبت بیمار جدید")
+                                                logger.log("ثبت بیمار جدید")
                                                 // باز کردن صفحه ثبت بیمار جدید
                                                 var newPage = appStackView.push("NewPatientPage.qml", {
                                                     "isEditMode": false,
@@ -351,13 +410,13 @@ Item {
 
                                                 // اتصال به سیگنال بعد از push
                                                 if (newPage) {
-                                                    console.log("Successfully pushed NewPatientPage")
+                                                    logger.log("Successfully pushed NewPatientPage")
                                                     newPage.backRequested.connect(function() {
-                                                        console.log("backRequested signal received from new patient page")
+                                                        logger.log("backRequested signal received from new patient page")
                                                         appStackView.pop()
                                                     })
                                                 } else {
-                                                    console.log("Failed to push NewPatientPage")
+                                                    logger.log("Failed to push NewPatientPage")
                                                 }
                                             }
                                         }
@@ -557,7 +616,7 @@ Item {
                                                     globalKeyboard.hide()
                                                 }
 
-                                                console.log("ویرایش اطلاعات بیمار")
+                                                logger.log("ویرایش اطلاعات بیمار")
                                                 // باز کردن صفحه ویرایش بیمار
                                                 var newPage = appStackView.push("NewPatientPage.qml", {
                                                     "isEditMode": true,
@@ -571,9 +630,9 @@ Item {
 
                                                 // اتصال به سیگنال بعد از push
                                                 if (newPage) {
-                                                    console.log("Successfully pushed NewPatientPage for editing")
+                                                    logger.log("Successfully pushed NewPatientPage for editing")
                                                     newPage.backRequested.connect(function() {
-                                                        console.log("backRequested signal received from edit page")
+                                                        logger.log("backRequested signal received from edit page")
                                                         appStackView.pop()
                                                     })
                                                 }
@@ -628,7 +687,7 @@ Item {
                                                     globalKeyboard.hide()
                                                 }
 
-                                                console.log("ثبت نوبت جدید برای بیمار با کد ملی:", patientCodemeliText.text)
+                                                logger.log("ثبت نوبت جدید برای بیمار با کد ملی:", patientCodemeliText.text)
                                                 // باز کردن صفحه PlasmaTherapy.qml
                                                 var therapyPage = appStackView.push("PlasmaTherapy.qml", {
                                                     "patientCodemeli": patientCodemeliText.text,
@@ -642,7 +701,7 @@ Item {
                                                 // اتصال به سیگنال بعد از push
                                                 if (therapyPage && therapyPage.backRequested) {
                                                     therapyPage.backRequested.connect(function() {
-                                                        console.log("backRequested signal received from therapy page")
+                                                        logger.log("backRequested signal received from therapy page")
                                                         appStackView.pop()
                                                     })
                                                 }
@@ -657,6 +716,73 @@ Item {
                             }
                         }
                     }
+
+                    // دکمه گزارش‌گیری در پایین صفحه
+                    Rectangle {
+                        id: reportButtonShadow
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 70
+                        color: "#20000000"
+                        radius: 10
+                        visible: true // همیشه نمایش داده شود
+
+                        Rectangle {
+                            id: reportButton
+                            anchors {
+                                fill: parent
+                                bottomMargin: reportMouseArea.pressed ? 1 : 3
+                                leftMargin: 2
+                                rightMargin: 2
+                                topMargin: 2
+                            }
+                            color: reportMouseArea.pressed ? Qt.darker("#673AB7", 1.2) : "#673AB7"
+                            radius: 10
+
+                            Text {
+                                text: "گزارش‌گیری و آمار"
+                                color: "white"
+                                font {
+                                    family: "Tahoma"
+                                    pixelSize: 20
+                                    bold: true
+                                }
+                                anchors.centerIn: parent
+                            }
+
+                            MouseArea {
+                                id: reportMouseArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+
+                                onClicked: {
+                                    // مخفی کردن کیبورد قبل از تغییر صفحه
+                                    if (globalKeyboard && globalKeyboard.visible) {
+                                        globalKeyboard.hide()
+                                    }
+
+                                    logger.log("باز کردن صفحه گزارش‌گیری")
+                                    // باز کردن صفحه ReportPage.qml
+                                    var reportPage = appStackView.push("ReportPage.qml", {
+                                        "stackView": appStackView,
+                                        "globalKeyboard": globalKeyboard,
+                                        "reportBackend": reportBackend
+                                    })
+
+                                    // اتصال به سیگنال بعد از push
+                                    if (reportPage && reportPage.backRequested) {
+                                        reportPage.backRequested.connect(function() {
+                                            logger.log("backRequested signal received from report page")
+                                            appStackView.pop()
+                                        })
+                                    }
+                                }
+                            }
+
+                            Behavior on color {
+                                ColorAnimation { duration: 100 }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -665,7 +791,7 @@ Item {
                 target: patientBackend
 
                 function onPatientFound(codemeli, name, age, gender) {
-                    console.log("Patient found signal received:", codemeli, name, age, gender)
+                    logger.log("Patient found signal received:", codemeli, name, age, gender)
 
                     // پر کردن فیلدهای اطلاعات بیمار
                     patientCodemeliText.text = codemeli
@@ -681,7 +807,7 @@ Item {
                 }
 
                 function onPatientNotFound() {
-                    console.log("Patient not found signal received")
+                    logger.log("Patient not found signal received")
 
                     // نمایش پیام خطا
                     errorMessage.text = "بیماری با این کد ملی یافت نشد"
@@ -692,7 +818,7 @@ Item {
                 }
 
                 function onErrorOccurred(errorMsg) {
-                    console.log("Error occurred:", errorMsg)
+                    logger.log("Error occurred:", errorMsg)
 
                     // نمایش پیام خطا
                     errorMessage.text = errorMsg

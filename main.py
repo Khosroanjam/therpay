@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta 
 
 from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QCoreApplication
 from PySide6.QtGui import QGuiApplication
@@ -9,7 +10,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from backend.logic import LoginManager
 from backend.logger import Logger
 from backend.logic import LoginManager
-from backend.database import PatientManager, DiseaseManager, TherapySessionManager
+from backend.database import PatientManager, DiseaseManager, TherapySessionManager, DatabaseManager
 #from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
 
@@ -63,6 +64,8 @@ class PatientBackend(QObject):
     def __init__(self):
         super().__init__()
         self._patient_manager = PatientManager()
+        # اضافه کردن یک نمونه از TherapySessionManager برای استفاده در getPatientSessionsInfo
+        self._session_manager = TherapySessionManager()
     
     @Slot(str)
     def searchPatient(self, codemeli):
@@ -124,7 +127,7 @@ class PatientBackend(QObject):
             error_msg = f"خطا در به‌روزرسانی اطلاعات بیمار: {str(e)}"
             print(error_msg)
             self.errorOccurred.emit(error_msg)
-    
+
     @Slot(str)
     def deletePatient(self, codemeli):
         """حذف بیمار"""
@@ -136,6 +139,7 @@ class PatientBackend(QObject):
             error_msg = f"خطا در حذف بیمار: {str(e)}"
             print(error_msg)
             self.errorOccurred.emit(error_msg)
+
     @Slot(str, result=int)
     def getPatientIdByCodeMeli(self, codemeli):
         """دریافت شناسه بیمار با کد ملی"""
@@ -259,6 +263,7 @@ class DiseaseBackend(QObject):
             return False
 
 class TherapySessionBackend(QObject):
+
     """کلاس واسط برای مدیریت جلسات تراپی در QML"""
     
     # سیگنال برای اعلام به‌روزرسانی جلسات
@@ -315,6 +320,296 @@ class TherapySessionBackend(QObject):
         if success:
             self.sessionUpdated.emit()
         return success
+        
+    @Slot(int, result='QVariant')
+    def getPatientSessionsInfo(self, patientId):
+        """
+        دریافت اطلاعات جلسات درمانی یک بیمار شامل تعداد کل جلسات
+        
+        :param patientId: شناسه بیمار
+        :return: دیکشنری حاوی تعداد جلسات
+        """
+        try:
+            # بررسی معتبر بودن شناسه بیمار
+            if not patientId or patientId <= 0:
+                print(f"Invalid patient ID: {patientId}")
+                return {"count": 0}
+                    
+            # اجرای کوئری برای دریافت تعداد جلسات
+            count_query = "SELECT COUNT(*) FROM therapy_sessions WHERE patient_id = ?"
+            count_result = self.session_manager.db_manager.execute_query(count_query, (patientId,))
+            print(f"getPatientSessionsInfo Result: {count_result}")
+            
+            # نتیجه به صورت تاپل است، اولین عنصر آن را می‌گیریم
+            count = count_result[0][0] if count_result and len(count_result) > 0 else 0
+            
+            print(f"Found {count} sessions for patient {patientId}")
+            return {"count": count}
+                
+        except Exception as e:
+            print(f"Error in getPatientSessionsInfo: {e}")
+            return {"count": 0}
+
+class ReportBackend(QObject):
+    """کلاس واسط برای گزارش‌گیری در QML"""
+    
+    def __init__(self):
+        """مقداردهی اولیه"""
+        #Logger.log("ReportBacked initialized . . .")
+        super().__init__()
+        self.db_manager = DatabaseManager()
+    
+    @Slot(result=int)
+    def getTotalPatientCount(self):
+        """دریافت تعداد کل بیماران"""
+        query = "SELECT COUNT(*) FROM patients"
+        result = self.db_manager.execute_query(query)
+        return result[0][0] if result and len(result) > 0 else 0
+    
+    @Slot(result=int)
+    def getTotalSessionCount(self):
+        """دریافت تعداد کل جلسات"""
+        query = "SELECT COUNT(*) FROM therapy_sessions"
+        result = self.db_manager.execute_query(query)
+        return result[0][0] if result and len(result) > 0 else 0
+    
+    @Slot(result=int)
+    def getCurrentMonthSessionCount(self):
+        """دریافت تعداد جلسات ماه جاری"""
+        # محاسبه تاریخ اول ماه جاری
+        now = datetime.now()
+        first_day = datetime(now.year, now.month, 1).strftime("%Y-%m-%d")
+        
+        query = "SELECT COUNT(*) FROM therapy_sessions WHERE session_date >= ?"
+        result = self.db_manager.execute_query(query, (first_day,))
+        return result[0][0] if result and len(result) > 0 else 0
+    
+    @Slot(result='QVariantList')
+    def getDiseaseDistribution(self):
+        """دریافت توزیع انواع درمان"""
+        query = """
+            SELECT d.name, COUNT(*) as count 
+            FROM therapy_sessions ts
+            JOIN diseases d ON ts.disease_id = d.id
+            GROUP BY d.name
+            ORDER BY count DESC
+        """
+        result = self.db_manager.execute_query(query)
+        
+        distribution = []
+        for row in result:
+            distribution.append({"name": row[0], "count": row[1]})
+        
+        return distribution
+    
+    @Slot(result='QVariantList')
+    def getWeeklySessionCount(self):
+        """دریافت تعداد جلسات در هفته اخیر"""
+        # محاسبه تاریخ 7 روز قبل
+        now = datetime.now()
+        seven_days_ago = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+        
+        query = """
+            SELECT strftime('%Y-%m-%d', session_date) as date, COUNT(*) as count 
+            FROM therapy_sessions
+            WHERE session_date >= ?
+            GROUP BY date
+            ORDER BY date
+        """
+        result = self.db_manager.execute_query(query, (seven_days_ago,))
+        
+        weekly_data = []
+        for row in result:
+            weekly_data.append({"date": row[0], "count": row[1]})
+        
+        return weekly_data
+    
+    @Slot(str, str, str, result='QVariantList')
+    def getPatientsList(self, search="", gender=None, sort_by="name"):
+        """دریافت لیست بیماران با فیلتر و مرتب‌سازی"""
+        params = []
+        where_clauses = []
+        
+        if search:
+            where_clauses.append("(p.name LIKE ? OR p.codemeli LIKE ?)")
+            params.extend([f"%{search}%", f"%{search}%"])
+        
+        if gender is not None and gender != "":
+            where_clauses.append("p.gender = ?")
+            params.append(int(gender))
+        
+        where_clause = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        
+        query = f"""
+            SELECT p.id, p.name, p.codemeli, p.age, p.gender,
+                   COUNT(ts.id) as session_count,
+                   MAX(ts.session_date) as last_session
+            FROM patients p
+            LEFT JOIN therapy_sessions ts ON p.id = ts.patient_id
+            {where_clause}
+            GROUP BY p.id
+            ORDER BY {sort_by}
+        """
+        
+        result = self.db_manager.execute_query(query, params)
+        
+        patients = []
+        for row in result:
+            patients.append({
+                "id": row[0],
+                "name": row[1],
+                "codemeli": row[2],
+                "age": row[3],
+                "gender": row[4],
+                "sessionCount": row[5],
+                "lastSession": row[6] if row[6] else ""
+            })
+        
+        return patients
+    
+    @Slot(str, str, int, result='QVariantList')
+    def getSessionsList(self, start_date=None, end_date=None, disease_id=None):
+        """دریافت لیست جلسات با فیلتر"""
+        params = []
+        where_clauses = []
+        
+        if start_date:
+            where_clauses.append("ts.session_date >= ?")
+            params.append(start_date)
+        
+        if end_date:
+            where_clauses.append("ts.session_date <= ?")
+            params.append(end_date)
+        
+        if disease_id is not None and disease_id > 0:
+            where_clauses.append("ts.disease_id = ?")
+            params.append(disease_id)
+        
+        where_clause = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        
+        query = f"""
+            SELECT ts.id, ts.session_date, p.name as patient_name, d.name as disease_name,
+                   ts.duration_minutes, ts.duration_seconds, ts.completed
+            FROM therapy_sessions ts
+            JOIN patients p ON ts.patient_id = p.id
+            JOIN diseases d ON ts.disease_id = d.id
+            {where_clause}
+            ORDER BY ts.session_date DESC
+        """
+        
+        result = self.db_manager.execute_query(query, params)
+        
+        sessions = []
+        for row in result:
+            sessions.append({
+                "id": row[0],
+                "date": row[1],
+                "patientName": row[2],
+                "diseaseName": row[3],
+                "duration": f"{row[4]}:{row[5]:02d}",
+                "completed": bool(row[6])
+            })
+        
+        return sessions
+    
+    @Slot(result='QVariantList')
+    def getDiseaseStatistics(self):
+        """دریافت آمار انواع درمان"""
+        query = """
+            SELECT d.id, d.name,
+                   COUNT(DISTINCT ts.patient_id) as patient_count,
+                   COUNT(ts.id) as session_count,
+                   AVG(ts.duration_minutes) as avg_minutes
+            FROM diseases d
+            LEFT JOIN therapy_sessions ts ON d.id = ts.disease_id
+            GROUP BY d.id
+            ORDER BY session_count DESC
+        """
+        
+        result = self.db_manager.execute_query(query)
+        
+        stats = []
+        for row in result:
+            avg_duration = round(row[4], 1) if row[4] is not None else 0
+            stats.append({
+                "id": row[0],
+                "name": row[1],
+                "patientCount": row[2],
+                "sessionCount": row[3],
+                "avgDuration": avg_duration
+            })
+        
+        return stats
+    @Slot(int, result='QVariantList')
+    def getPatientSessions(self, patient_id):
+        """دریافت جلسات مربوط به یک بیمار خاص"""
+        try:
+            query = """
+                SELECT ts.id, ts.session_date, p.name as patient_name, d.name as disease_name,
+                    ts.duration_minutes, ts.duration_seconds, ts.completed
+                FROM therapy_sessions ts
+                JOIN patients p ON ts.patient_id = p.id
+                JOIN diseases d ON ts.disease_id = d.id
+                WHERE ts.patient_id = ?
+                ORDER BY ts.session_date DESC
+            """
+            
+            result = self.db_manager.execute_query(query, (patient_id,))
+            
+            sessions = []
+            for row in result:
+                sessions.append({
+                    "id": row[0],
+                    "date": row[1],
+                    "patientName": row[2],
+                    "diseaseName": row[3],
+                    "duration": f"{row[4]}:{row[5]:02d}",
+                    "completed": bool(row[6])
+                })
+            
+            return sessions
+        except Exception as e:
+            print(f"Error getting patient sessions: {str(e)}")
+            return []
+    @Slot(int, result='QVariantList')
+    def getPatientDiseaseStatistics(self, patient_id):
+        """دریافت آمار بیماری‌های یک بیمار خاص"""
+        try:
+            query = """
+                SELECT d.id, d.name,
+                    COUNT(ts.id) as session_count,
+                    MIN(ts.session_date) as first_session,
+                    MAX(ts.session_date) as last_session,
+                    AVG(ts.duration_minutes) as avg_minutes,
+                    SUM(ts.duration_minutes) as total_minutes
+                FROM therapy_sessions ts
+                JOIN diseases d ON ts.disease_id = d.id
+                WHERE ts.patient_id = ?
+                GROUP BY d.id
+                ORDER BY session_count DESC
+            """
+            
+            result = self.db_manager.execute_query(query, (patient_id,))
+            print(f"PatientDiseaseStatistics Resule {result}")
+            stats = []
+            for row in result:
+                avg_duration = round(row[5], 1) if row[5] is not None else 0
+                total_duration = row[6] if row[6] is not None else 0
+                
+                stats.append({
+                    "id": row[0],
+                    "name": row[1],
+                    "sessionCount": row[2],
+                    "firstSession": row[3],
+                    "lastSession": row[4],
+                    "avgDuration": avg_duration,
+                    "totalDuration": total_duration
+                })
+            print(f"stats {stats}")
+            return stats
+        except Exception as e:
+            print(f"Error getting patient disease statistics: {str(e)}")
+            return []
 
 def main():
     # ایجاد برنامه
@@ -330,16 +625,15 @@ def main():
     disease_backend = DiseaseBackend() 
     session_backend = TherapySessionBackend()
     logger = Logger()
+    report_backend = ReportBackend()
 
     # قرار دادن backend در context موتور QML
     engine.rootContext().setContextProperty("backend", backend)
     engine.rootContext().setContextProperty("patientBackend", patient_backend)
     engine.rootContext().setContextProperty("diseaseBackend", disease_backend) 
     engine.rootContext().setContextProperty("sessionBackend", session_backend)
+    engine.rootContext().setContextProperty("reportBackend", report_backend)
     engine.rootContext().setContextProperty("logger", logger)
-
-  
-
 
     # تنظیم مسیر فایل‌های QML
     qml_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UntitledProject1Content")
@@ -349,14 +643,9 @@ def main():
     # بارگذاری فایل QML اصلی
     engine.load(QUrl.fromLocalFile(main_qml))
     
-
-    
-
-
     # بررسی بارگذاری موفق
     if not engine.rootObjects():
         sys.exit(-1)
-
 
     # اجرای برنامه
     sys.exit(app.exec())

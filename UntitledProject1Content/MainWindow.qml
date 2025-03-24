@@ -7,7 +7,7 @@ Window {
     id: mainWindow
     visible: true
     width: 800
-    height: 700
+    height: 800
     title: "Plasma Company"
 
     // این تابع هنگام بستن پنجره فراخوانی می‌شود
@@ -45,6 +45,7 @@ Window {
                    // ارسال کیبورد مجازی به AppPage
                    if (appPageComponent) {
                        appPageComponent.globalKeyboard = globalKeyboard
+                       appPageComponent.reportBackend = reportBackend
                    }
                }
            }
