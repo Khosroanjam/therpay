@@ -22,7 +22,7 @@ Item {
 
     // پراپرتی برای ذخیره تعداد جلسات قبلی
     property int previousSessionsCount: 0
-    property var lastSessionDate: ""
+    property string lastSessionDate: ""
 
     // پراپرتی‌های تایمر
     property int minutes: initialMinutes
@@ -62,6 +62,32 @@ Item {
             }
         }
     }
+
+    DragHandler {
+           id: dragHandler
+           target: null  // هیچ هدفی را حرکت نمی‌دهیم
+           property point startPoint
+
+           onActiveChanged: {
+               if (active) {
+                   startPoint = centroid.position
+               } else {
+                   var deltaX = centroid.position.x - startPoint.x
+                   var deltaY = centroid.position.y - startPoint.y
+
+                   // اگر حرکت بیشتر افقی بوده و از آستانه بیشتر است
+                   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+                       if (deltaX > 0) {
+                           logger.log("Swiped Right")
+                           // اینجا می‌توانید تابع goBack را فراخوانی کنید
+                           goBack()
+                       } else {
+                           //logger.log("Swiped Left")
+                       }
+                   }
+               }
+           }
+       }
 
     Rectangle {
         anchors.fill: parent

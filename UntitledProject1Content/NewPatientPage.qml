@@ -6,8 +6,8 @@ import QtQuick.Layouts
 
 Item {
     id: newPatientRoot
-    width: parent.width
-    height: parent.height
+    width: parent ? parent.width : 800
+    height: parent ? parent.height : 800
 
     // سیگنال برای درخواست بازگشت
     signal backRequested()
@@ -24,6 +24,32 @@ Item {
 
     // متغیر برای ذخیره کد ملی جاری برای جستجوی مجدد پس از بازگشت
     property string codeToSearch: ""
+
+    DragHandler {
+           id: dragHandler
+           target: null  // هیچ هدفی را حرکت نمی‌دهیم
+           property point startPoint
+
+           onActiveChanged: {
+               if (active) {
+                   startPoint = centroid.position
+               } else {
+                   var deltaX = centroid.position.x - startPoint.x
+                   var deltaY = centroid.position.y - startPoint.y
+
+                   // اگر حرکت بیشتر افقی بوده و از آستانه بیشتر است
+                   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+                       if (deltaX > 0) {
+                           logger.log("Swiped Right")
+                           // اینجا می‌توانید تابع goBack را فراخوانی کنید
+                           backRequested()
+                       } else {
+                           logger.log("Swiped Left")
+                       }
+                   }
+               }
+           }
+       }
 
     // MouseArea سراسری برای از دست دادن فوکوس
     MouseArea {
