@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Plasma Therapy
+Comment=Plasma Therapy Programmer By : sadegh @khosroanjam
+Exec=/usr/local/bin/plasma_therapy_run
+Icon=/usr/local/share/plasma_therapy/UntitledProject1Content/images/plasma-logo.png
+Terminal=false
+Categories=Medical;Healthcare;
+Keywords=plasma;therapy;timer;khosroanjam;

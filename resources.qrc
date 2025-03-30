@@ -1,0 +1,25 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/">
+    <file>UntitledProject1/EventListModel.qml</file>
+    <file>UntitledProject1/EventListSimulator.qml</file>
+    <file>UntitledProject1/qmldir</file>
+    <file>UntitledProject1Content/AppPage.qml</file>
+    <file>UntitledProject1Content/ConfirmDialog.qml</file>
+    <file>UntitledProject1Content/DigitalTimer.qml</file>
+    <file>UntitledProject1Content/LoginPage.qml</file>
+    <file>UntitledProject1Content/MainWindow.qml</file>
+    <file>UntitledProject1Content/NewPatientPage.qml</file>
+    <file>UntitledProject1Content/PlasmaTherapy.qml</file>
+    <file>UntitledProject1Content/PlasmaTimer.qml</file>
+    <file>UntitledProject1Content/ReportPage.qml</file>
+    <file>UntitledProject1Content/Screen01.ui.qml</file>
+    <file>UntitledProject1Content/SkeinWindows.qml</file>
+    <file>UntitledProject1Content/TherapyHistory.qml</file>
+    <file>UntitledProject1Content/VirtualKeyboard.qml</file>
+    <file>UntitledProject1Content/images/doctor.png</file>
+    <file>UntitledProject1Content/images/man-icon.png</file>
+    <file>UntitledProject1Content/images/plasma-logo.png</file>
+    <file>qtquickcontrols2.conf</file>
+</qresource>
+</RCC>

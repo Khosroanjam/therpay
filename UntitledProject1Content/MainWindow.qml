@@ -2,6 +2,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
+import QtQuick.Controls.Material 2.15
 
 Window {
     id: mainWindow
@@ -9,7 +10,10 @@ Window {
     width: 800
     height: 800
     title: "Plasma Company"
-
+    // فعال‌سازی متریال دیزاین
+        Material.theme: Material.Dark  // یا Material.Light
+        Material.accent: Material.Teal
+        Material.primary: Material.BlueGrey
     // این تابع هنگام بستن پنجره فراخوانی می‌شود
     Component.onDestruction: {
         backend.exitApplication()

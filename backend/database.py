@@ -7,7 +7,7 @@ from pathlib import Path
 class DatabaseManager:
     """کلاس مدیریت دیتابیس برای برنامه"""
     
-    def __init__(self, db_name="plasma.db"):
+    def __init__(self, db_name="db/plasma.db"):
         """مقداردهی اولیه و ایجاد دیتابیس"""
         # تعیین مسیر دیتابیس در کنار فایل اجرایی
         try:

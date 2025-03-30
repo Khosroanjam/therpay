@@ -1,0 +1,11 @@
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/plasma_therapy.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/package.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/package_source.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/edit_cache.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/rebuild_cache.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/list_install_components.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/install.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/install/local.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/install/strip.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/plasma_therapy_autogen_timestamp_deps.dir
+/home/plasma/Documents/Qttest/untitled/UntitledProject1/build-release/CMakeFiles/plasma_therapy_autogen.dir
