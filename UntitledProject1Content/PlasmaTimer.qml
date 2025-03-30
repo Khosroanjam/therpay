@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Item {
     id: plasmaTimerRoot
     width: parent ? parent.width : 800
-    height: parent ? parent.height : 750
+    height: parent ? parent.height : 800
 
     // سیگنال برای بازگشت به صفحه قبل
     signal goBack()
@@ -80,7 +80,11 @@ Item {
                        if (deltaX > 0) {
                            logger.log("Swiped Right")
                            // اینجا می‌توانید تابع goBack را فراخوانی کنید
-                           goBack()
+                           if (isRunning) {
+                               showConfirmDialog("آیا مطمئن هستید که می‌خواهید خارج شوید؟")
+                           } else {
+                               goBack() // فراخوانی سیگنال بازگشت
+                           }
                        } else {
                            //logger.log("Swiped Left")
                        }
@@ -746,6 +750,12 @@ Item {
                 try {
                     showToast("زمان درمان به پایان رسید")
                     logger.log("زمان درمان به اتمام رسید")
+                    try {
+                            relayController.setRelay(1, false)
+                            logger.log("رله 1 خاموش شد")
+                        } catch (error) {
+                           logger.log("خطا در خاموش کردن رله: " + error)
+                        }
                     logger.log("Befor Save Save Therapy")
                     // ذخیره جلسه در دیتابیس
                     saveTherapySession()
@@ -777,8 +787,23 @@ Item {
             initialMinutes = minutes
             initialSeconds = seconds
             showToast("تایمر شروع شد - در پایان زمان، جلسه ذخیره خواهد شد")
+            // روشن کردن رله 1 هنگام شروع تایمر
+            try {
+               relayController.setRelay(1, true)
+               logger.log("رله 1 روشن شد")
+            } catch (error) {
+               logger.log("خطا در روشن کردن رله: " + error)
+           }
         } else {
             showToast("تایمر متوقف شد")
+            logger.log("تایمر متوقف شد")
+            // خاموش کردن رله 1 هنگام توقف تایمر
+            try {
+                relayController.setRelay(1, false)
+                logger.log("رله 1 خاموش شد")
+            } catch (error) {
+                logger.log("خطا در خاموش کردن رله: " + error)
+          }
         }
 
         // به‌روزرسانی نمایش انیمیشن
@@ -794,6 +819,7 @@ Item {
         updateProgress()
         progressCanvas.requestPaint()
         showToast("تایمر به حالت اولیه برگشت")
+        logger.log("تایمر به حالت اول برگشت")
     }
 
     // تابع ذخیره جلسه تراپی
@@ -876,7 +902,7 @@ Item {
 
             plasmaTimerRoot.visible = false
         } else {
-            console.log("خطا در بارگذاری صفحه تاریخچه:", component.errorString())
+            logger.log("خطا در بارگذاری صفحه تاریخچه:", component.errorString())
             showToast("خطا در بارگذاری صفحه تاریخچه")
         }
     }
@@ -961,11 +987,11 @@ Item {
 
         // اگر diseaseId صفر باشد، سعی کنید آن را بر اساس نام بیماری پیدا کنید
         if (diseaseId <= 0 && diseaseName) {
-            console.log("تلاش برای یافتن شناسه بیماری با نام:"+diseaseName)
+            logger.log("تلاش برای یافتن شناسه بیماری با نام:"+diseaseName)
             var diseaseInfo = diseaseBackend.getDiseaseInfo(diseaseName)
             if (diseaseInfo && diseaseInfo.id) {
                 diseaseId = diseaseInfo.id
-                console.log("شناسه بیماری یافت شده:"+ diseaseId)
+                logger.log("شناسه بیماری یافت شده:"+ diseaseId)
             }
         }
 

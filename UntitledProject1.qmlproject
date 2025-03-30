@@ -116,7 +116,7 @@ Project {
     }
 
     multilanguageSupport: true
-    supportedLanguages: ["en"]
+    supportedLanguages: ["en", "fa"]
     primaryLanguage: "en"
 
 }

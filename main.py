@@ -12,7 +12,7 @@ from backend.logger import Logger
 from backend.logic import LoginManager
 from backend.database import PatientManager, DiseaseManager, TherapySessionManager, DatabaseManager
 #from PySide6.QtCore import QtMsgType, qInstallMessageHandler
-
+from backend.relay_controller import RelayController
 
 class Backend(QObject):
     # سیگنال‌ها برای ارتباط با QML
@@ -618,7 +618,8 @@ def main():
     app.lastWindowClosed.connect(app.quit)
     # ایجاد موتور QML
     engine = QQmlApplicationEngine()
-    
+    # ایجاد نمونه از کنترلر رله
+    relay_controller = RelayController()
     # ایجاد نمونه backend
     backend = Backend()
     patient_backend = PatientBackend()
@@ -634,7 +635,7 @@ def main():
     engine.rootContext().setContextProperty("sessionBackend", session_backend)
     engine.rootContext().setContextProperty("reportBackend", report_backend)
     engine.rootContext().setContextProperty("logger", logger)
-
+    engine.rootContext().setContextProperty("relayController", relay_controller)
     # تنظیم مسیر فایل‌های QML
     qml_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UntitledProject1Content")
     main_qml = os.path.join(qml_dir, "MainWindow.qml")
