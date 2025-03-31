@@ -60,6 +60,7 @@ class PatientBackend(QObject):
     patientAdded = Signal(bool, str)  # سیگنال برای اضافه کردن بیمار
     patientUpdated = Signal(bool, str)  # سیگنال برای به‌روزرسانی بیمار
     patientDeleted = Signal(bool, str)  # سیگنال برای حذف بیمار
+    patientExistsResult = Signal(bool) 
     
     def __init__(self):
         super().__init__()
@@ -88,7 +89,26 @@ class PatientBackend(QObject):
             error_msg = f"خطا در جستجوی بیمار: {str(e)}"
             print(error_msg)
             self.errorOccurred.emit(error_msg)
-    
+    @Slot(str)
+    def checkPatientExists(self, codemeli):
+        """بررسی وجود بیمار با کد ملی مشخص و ارسال نتیجه از طریق سیگنال"""
+        try:
+            # استفاده از تابع search_patient موجود در PatientManager
+            patient = self._patient_manager.search_patient(codemeli)
+            
+            # ارسال نتیجه از طریق سیگنال
+            exists = patient is not None
+            self.patientExistsResult.emit(exists)
+            
+            print(f"بررسی وجود بیمار با کد ملی {codemeli}: {'موجود است' if exists else 'موجود نیست'}")
+            
+        except Exception as e:
+            error_msg = f"خطا در بررسی وجود بیمار: {str(e)}"
+            print(error_msg)
+            self.errorOccurred.emit(error_msg)
+            # در صورت خطا، فرض می‌کنیم بیمار وجود ندارد
+            self.patientExistsResult.emit(False)
+            
     @Slot(str, str, int, int)
     def addPatient(self, codemeli, name, age, gender):
         """افزودن بیمار جدید"""

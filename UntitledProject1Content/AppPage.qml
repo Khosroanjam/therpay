@@ -15,6 +15,7 @@ Item {
     property color cardColor: "#FFFFFF"
     property color textColor: "#333333"
     property var reportBackend: null
+    property bool isCheckingPatientExists: false
     signal goBack()
     // اضافه کردن دسترسی به کیبورد مجازی سراسری
     property var globalKeyboard: null
@@ -429,13 +430,23 @@ Item {
                                                      errorMessage.visible = true
                                                     return
                                                 }
-                                                // باز کردن صفحه ثبت بیمار جدید
-                                                var newPage = appStackView.push("NewPatientPage.qml", {
-                                                    "isEditMode": false,
-                                                    "searchedCodemeli": nationalIdField.text,
-                                                    "stackView": appStackView,
-                                                    "globalKeyboard": globalKeyboard // ارسال کیبورد به صفحه بعدی
-                                                })
+                                                
+                                                // بررسی وجود بیمار با این کد ملی
+                                                isCheckingPatientExists = true
+                                                patientBackend.checkPatientExists(nationalIdField.text)
+
+                                             
+
+                                                    // اتصال به سیگنال بعد از push
+                                                    if (newPage) {
+                                                        logger.log("Successfully pushed NewPatientPage")
+                                                        newPage.backRequested.connect(function() {
+                                                            logger.log("backRequested signal received from new patient page")
+                                                            appStackView.pop()
+                                                        })
+                                                    } else {
+                                                        logger.log("Failed to push NewPatientPage")
+                                                    }
 
 
                                                 // اتصال به سیگنال بعد از push
@@ -819,6 +830,37 @@ Item {
             // اتصال به سیگنال‌های patientBackend
             Connections {
                 target: patientBackend
+
+                  function onPatientExistsResult(exists) {
+                        if (isCheckingPatientExists) {
+                            isCheckingPatientExists = false
+                            
+                            if (exists) {
+                                // بیمار قبلاً ثبت شده است
+                                errorMessage.text = "بیماری با این کد ملی قبلاً ثبت شده است"
+                                errorMessage.visible = true
+                            } else {
+                                // بیمار جدید است، باز کردن صفحه ثبت
+                                var newPage = appStackView.push("NewPatientPage.qml", {
+                                    "isEditMode": false,
+                                    "searchedCodemeli": nationalIdField.text,
+                                    "stackView": appStackView,
+                                    "globalKeyboard": globalKeyboard // ارسال کیبورد به صفحه بعدی
+                                })
+
+                                // اتصال به سیگنال بعد از push
+                                if (newPage) {
+                                    logger.log("Successfully pushed NewPatientPage")
+                                    newPage.backRequested.connect(function() {
+                                        logger.log("backRequested signal received from new patient page")
+                                        appStackView.pop()
+                                    })
+                                } else {
+                                    logger.log("Failed to push NewPatientPage")
+                                }
+                            }
+                        }
+                    }
 
                 function onPatientFound(codemeli, name, age, gender) {
                     logger.log("Patient found signal received:", codemeli, name, age, gender)
