@@ -5,12 +5,12 @@ import QtQuick.Layouts 1.15
 
 Item {
     id: appPage
-    width: 800
-    height: 750
-
+   // width: 800
+   // height: 750
+    anchors.fill: parent
     // رنگ‌های اصلی برنامه
-    property color primaryColor: "#3F51B5"
-    property color accentColor: "#FF4081"
+    property color primaryColor: "#21a35b"
+    property color accentColor: "#e6a22e"
     property color backgroundColor: "#F5F5F5"
     property color cardColor: "#FFFFFF"
     property color textColor: "#333333"
@@ -256,7 +256,7 @@ Item {
                                     border.width: 1
 
                                     TextField {
-                                        id: nationalIdField                                        
+                                        id: nationalIdField
                                         anchors {
                                             fill: parent
                                             margins: 5
@@ -331,6 +331,43 @@ Item {
                                     color: "#20000000"
                                     radius: 10
 
+                                    // اضافه کردن خاصیت برای تغییر سایه هنگام فشردن دکمه
+                                    property bool buttonPressed: searchMouseArea.pressed
+
+                                    // انیمیشن تغییر رنگ سایه
+                                    Behavior on color {
+                                        ColorAnimation { duration: 100 }
+                                    }
+
+                                    // حالت‌های سایه
+                                    states: [
+                                        State {
+                                            name: "pressed"
+                                            when: buttonPressed
+                                            PropertyChanges {
+                                                target: searchButtonShadow
+                                                color: "#40000000"  // سایه تیره‌تر هنگام فشردن
+                                            }
+                                        }
+                                    ]
+
+                                    transitions: [
+                                        Transition {
+                                            from: ""
+                                            to: "pressed"
+                                            ColorAnimation {
+                                                duration: 100
+                                            }
+                                        },
+                                        Transition {
+                                            from: "pressed"
+                                            to: ""
+                                            ColorAnimation {
+                                                duration: 200
+                                            }
+                                        }
+                                    ]
+
                                     Rectangle {
                                         id: searchButton
                                         anchors {
@@ -342,6 +379,30 @@ Item {
                                         }
                                         color: searchMouseArea.pressed ? Qt.darker(primaryColor, 1.2) : primaryColor
                                         radius: 10
+
+                                        // اضافه کردن خاصیت برای حالت هاور
+                                        property bool isHovered: false
+
+                                        // انیمیشن کلیک
+                                        SequentialAnimation {
+                                            id: clickAnimation
+                                            PropertyAnimation {
+                                                target: searchButton
+                                                property: "scale"
+                                                to: 0.95
+                                                duration: 100
+                                                easing.type: Easing.OutQuad
+                                            }
+                                            PropertyAnimation {
+                                                target: searchButton
+                                                property: "scale"
+                                                to: 1.0
+                                                duration: 100
+                                                easing.type: Easing.OutElastic
+                                                easing.amplitude: 1.2
+                                                easing.period: 0.5
+                                            }
+                                        }
 
                                         Text {
                                             text: "جستجو"
@@ -359,7 +420,15 @@ Item {
                                             anchors.fill: parent
                                             hoverEnabled: true
 
+                                            // اضافه کردن رویدادهای هاور
+                                            onEntered: parent.isHovered = true
+                                            onExited: parent.isHovered = false
+
                                             onClicked: {
+                                                // شروع انیمیشن کلیک
+                                                clickAnimation.start()
+
+                                                // کد قبلی
                                                 // مخفی کردن کیبورد قبل از جستجو
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
@@ -376,6 +445,39 @@ Item {
                                             }
                                         }
 
+                                        // اضافه کردن حالت‌ها برای انیمیشن هاور
+                                        states: [
+                                            State {
+                                                name: "hovered"
+                                                when: isHovered
+                                                PropertyChanges {
+                                                    target: searchButton
+                                                    scale: 1.05
+                                                }
+                                            }
+                                        ]
+
+                                        transitions: [
+                                            Transition {
+                                                from: ""
+                                                to: "hovered"
+                                                PropertyAnimation {
+                                                    properties: "scale"
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+                                            },
+                                            Transition {
+                                                from: "hovered"
+                                                to: ""
+                                                PropertyAnimation {
+                                                    properties: "scale"
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+                                            }
+                                        ]
+
                                         Behavior on color {
                                             ColorAnimation { duration: 100 }
                                         }
@@ -390,6 +492,43 @@ Item {
                                     color: "#20000000"
                                     radius: 10
 
+                                    // اضافه کردن خاصیت برای تغییر سایه هنگام فشردن دکمه
+                                    property bool buttonPressed: newPatientMouseArea.pressed
+
+                                    // انیمیشن تغییر رنگ سایه
+                                    Behavior on color {
+                                        ColorAnimation { duration: 100 }
+                                    }
+
+                                    // حالت‌های سایه
+                                    states: [
+                                        State {
+                                            name: "pressed"
+                                            when: buttonPressed
+                                            PropertyChanges {
+                                                target: newPatientButtonShadow
+                                                color: "#40000000"  // سایه تیره‌تر هنگام فشردن
+                                            }
+                                        }
+                                    ]
+
+                                    transitions: [
+                                        Transition {
+                                            from: ""
+                                            to: "pressed"
+                                            ColorAnimation {
+                                                duration: 100
+                                            }
+                                        },
+                                        Transition {
+                                            from: "pressed"
+                                            to: ""
+                                            ColorAnimation {
+                                                duration: 200
+                                            }
+                                        }
+                                    ]
+
                                     Rectangle {
                                         id: newPatientButton
                                         anchors {
@@ -401,6 +540,74 @@ Item {
                                         }
                                         color: newPatientMouseArea.pressed ? Qt.darker(accentColor, 1.2) : accentColor
                                         radius: 10
+
+                                        // اضافه کردن خاصیت برای حالت هاور
+                                        property bool isHovered: false
+
+                                        // انیمیشن کلیک
+                                        SequentialAnimation {
+                                            id: newPatientClickAnimation
+                                            PropertyAnimation {
+                                                target: newPatientButton
+                                                property: "scale"
+                                                to: 0.95
+                                                duration: 100
+                                                easing.type: Easing.OutQuad
+                                            }
+                                            PropertyAnimation {
+                                                target: newPatientButton
+                                                property: "scale"
+                                                to: 1.0
+                                                duration: 150
+                                                easing.type: Easing.OutElastic
+                                                easing.amplitude: 1.2
+                                                easing.period: 0.5
+                                            }
+                                        }
+
+                                        // اضافه کردن انیمیشن موج (ripple) برای دکمه
+                                        Item {
+                                            id: rippleArea
+                                            anchors.fill: parent
+                                            clip: true
+
+                                            function createRipple(mouseX, mouseY) {
+                                                var ripple = rippleComponent.createObject(rippleArea, {
+                                                    "x": mouseX - rippleSize/2,
+                                                    "y": mouseY - rippleSize/2
+                                                });
+                                                ripple.destroy(800); // حذف خودکار بعد از اتمام انیمیشن
+                                            }
+
+                                            property real rippleSize: Math.max(width, height) * 2
+
+                                            Component {
+                                                id: rippleComponent
+
+                                                Rectangle {
+                                                    id: rippleRect
+                                                    width: rippleSize
+                                                    height: rippleSize
+                                                    radius: rippleSize/2
+                                                    color: "white"
+                                                    opacity: 0.3
+
+                                                    NumberAnimation on scale {
+                                                        from: 0
+                                                        to: 1
+                                                        duration: 500
+                                                        easing.type: Easing.OutQuad
+                                                    }
+
+                                                    NumberAnimation on opacity {
+                                                        from: 0.3
+                                                        to: 0
+                                                        duration: 500
+                                                        easing.type: Easing.OutQuad
+                                                    }
+                                                }
+                                            }
+                                        }
 
                                         Text {
                                             text: "ثبت بیمار جدید"
@@ -418,7 +625,16 @@ Item {
                                             anchors.fill: parent
                                             hoverEnabled: true
 
+                                            // اضافه کردن رویدادهای هاور
+                                            onEntered: parent.isHovered = true
+                                            onExited: parent.isHovered = false
+
                                             onClicked: {
+                                                // شروع انیمیشن کلیک و موج
+                                                newPatientClickAnimation.start()
+                                                rippleArea.createRipple(mouse.x, mouse.y)
+
+                                                // کد قبلی
                                                 // مخفی کردن کیبورد قبل از تغییر صفحه
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
@@ -427,27 +643,13 @@ Item {
                                                 if (nationalIdField.text.length <= 9) {
                                                     logger.log("طول کد ملی کوچیک تر از ۱۰ کاراکتر است")
                                                     errorMessage.text = "طول کاراکتر کد ملی نباید کمتر از ۱۰ کاراکتر باشد"
-                                                     errorMessage.visible = true
+                                                    errorMessage.visible = true
                                                     return
                                                 }
-                                                
+
                                                 // بررسی وجود بیمار با این کد ملی
                                                 isCheckingPatientExists = true
                                                 patientBackend.checkPatientExists(nationalIdField.text)
-
-                                             
-
-                                                    // اتصال به سیگنال بعد از push
-                                                    if (newPage) {
-                                                        logger.log("Successfully pushed NewPatientPage")
-                                                        newPage.backRequested.connect(function() {
-                                                            logger.log("backRequested signal received from new patient page")
-                                                            appStackView.pop()
-                                                        })
-                                                    } else {
-                                                        logger.log("Failed to push NewPatientPage")
-                                                    }
-
 
                                                 // اتصال به سیگنال بعد از push
                                                 if (newPage) {
@@ -461,6 +663,39 @@ Item {
                                                 }
                                             }
                                         }
+
+                                        // اضافه کردن حالت‌ها برای انیمیشن هاور
+                                        states: [
+                                            State {
+                                                name: "hovered"
+                                                when: isHovered
+                                                PropertyChanges {
+                                                    target: newPatientButton
+                                                    scale: 1.05
+                                                }
+                                            }
+                                        ]
+
+                                        transitions: [
+                                            Transition {
+                                                from: ""
+                                                to: "hovered"
+                                                PropertyAnimation {
+                                                    properties: "scale"
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+                                            },
+                                            Transition {
+                                                from: "hovered"
+                                                to: ""
+                                                PropertyAnimation {
+                                                    properties: "scale"
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+                                            }
+                                        ]
 
                                         Behavior on color {
                                             ColorAnimation { duration: 100 }
@@ -834,7 +1069,7 @@ Item {
                   function onPatientExistsResult(exists) {
                         if (isCheckingPatientExists) {
                             isCheckingPatientExists = false
-                            
+
                             if (exists) {
                                 // بیمار قبلاً ثبت شده است
                                 errorMessage.text = "بیماری با این کد ملی قبلاً ثبت شده است"

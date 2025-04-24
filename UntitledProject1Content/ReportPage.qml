@@ -5,9 +5,9 @@ import QtQuick.Layouts 1.15
 
 Item {
     id: reportPage
-    width: 800
-    height: 750
-
+    //width: 800
+    //height: 750
+    anchors.fill: parent
     // سیگنال برای بازگشت به صفحه قبلی
     signal backRequested()
 
@@ -74,7 +74,6 @@ Item {
         patientSessionsTitle.text = "جلسات درمانی بیمار: " + patientName
         patientSessionsTitle.visible = true
     }
-
     // تابع بارگذاری آمار بیماری‌های یک بیمار خاص
     function loadPatientDiseaseStatistics(patientId, patientName) {
         logger.log("Loading disease statistics for patient: " + patientName + " (ID: " + patientId + ")")

@@ -6,7 +6,7 @@ import QtQuick.Layouts
 Item {
     id: plasmaTimerRoot
     width: parent ? parent.width : 800
-    height: parent ? parent.height : 800
+    height: parent ? parent.height : 850
 
     // سیگنال برای بازگشت به صفحه قبل
     signal goBack()
