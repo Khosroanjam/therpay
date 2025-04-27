@@ -253,7 +253,7 @@ Item {
                                     color: "#F9F9F9"
                                     radius: 8
                                     border.color: nationalIdField.focus ? primaryColor : "#E0E0E0"
-                                    border.width: 1
+                                    border.width: 1.5
 
                                     TextField {
                                         id: nationalIdField
