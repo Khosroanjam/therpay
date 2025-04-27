@@ -1,13 +1,12 @@
-// AppPage.qml - با دکمه گزارش‌گیری
+// AppPage.qml - با دکمه گزارش‌گیری و آیکون‌های اضافه شده
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Item {
     id: appPage
-   // width: 800
-   // height: 750
     anchors.fill: parent
+
     // رنگ‌های اصلی برنامه
     property color primaryColor: "#21a35b"
     property color accentColor: "#e6a22e"
@@ -27,10 +26,9 @@ Item {
         z: -1  // زیر همه چیز
 
         onClicked: {
-            // کلیک روی صفحه اصلی باعث مخفی شدن کیبورد می‌شود
             if (globalKeyboard && globalKeyboard.visible) {
                 globalKeyboard.hide()
-                forceActiveFocus()  // فوکوس را به صفحه اصلی بده
+                forceActiveFocus()
             }
         }
     }
@@ -61,6 +59,7 @@ Item {
                 height: 70
                 color: primaryColor
                 z: 2
+
                 // سایه ساده برای هدر
                 Rectangle {
                     anchors.top: parent.bottom
@@ -70,38 +69,46 @@ Item {
                 }
 
                 Text {
-                    text: "سیستم مدیریت بیماران"
+                    text: "پلاسما تراپی"
                     color: "white"
-                    font {
-                        family: "Tahoma"
-                        pixelSize: 22
-                        bold: true
-                    }
+                    font.family: "Tahoma"
+                    font.pixelSize: 22
+                    font.bold: true
                     anchors.centerIn: parent
                 }
 
-                // دکمه گزارش‌گیری در گوشه سمت چپ هدر
+                // دکمه گزارش‌گیری در گوشه سمت چپ هدر با آیکون
                 Rectangle {
                     id: reportButtonHeader
                     width: 120
                     height: 40
                     radius: 20
                     color: reportHeaderMouseArea.pressed ? Qt.darker("#4CAF50", 1.2) : "#4CAF50"
-                    anchors {
-                        left: parent.left
-                        leftMargin: 15
-                        verticalCenter: parent.verticalCenter
-                    }
+                    anchors.left: parent.left
+                    anchors.leftMargin: 15
+                    anchors.verticalCenter: parent.verticalCenter
 
-                    Text {
-                        text: "گزارش‌ها"
-                        color: "white"
-                        font {
-                            family: "Tahoma"
-                            pixelSize: 14
-                            bold: true
-                        }
+                    Row {
+                        spacing: 6
                         anchors.centerIn: parent
+
+                        Image {
+                            source: "images/report-icon.png"
+                            width: 18
+                            height: 18
+                            anchors.verticalCenter: parent.verticalCenter
+                            sourceSize.width: 18
+                            sourceSize.height: 18
+                        }
+
+                        Text {
+                            text: "گزارش‌ها"
+                            color: "white"
+                            font.family: "Tahoma"
+                            font.pixelSize: 14
+                            font.bold: true
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
 
                     MouseArea {
@@ -110,19 +117,16 @@ Item {
                         hoverEnabled: true
 
                         onClicked: {
-                            // مخفی کردن کیبورد قبل از تغییر صفحه
                             if (globalKeyboard && globalKeyboard.visible) {
                                 globalKeyboard.hide()
                             }
 
                             logger.log("باز کردن صفحه گزارش‌گیری")
-                            // باز کردن صفحه ReportPage.qml
                             var reportPage = appStackView.push("ReportPage.qml", {
                                 "stackView": appStackView,
-                                                                   "reportBackend": reportBackend
+                                "reportBackend": reportBackend
                             })
 
-                            // اتصال به سیگنال بعد از push
                             if (reportPage && reportPage.backRequested) {
                                 reportPage.backRequested.connect(function() {
                                     logger.log("backRequested signal received from report page")
@@ -137,50 +141,45 @@ Item {
                     }
                 }
             }
+
             // محتوای اصلی
             Flickable {
-                anchors {
-                    top: headerBar.bottom
-                    left: parent.left
-                    right: parent.right
-                    bottom: parent.bottom
-                }
+                anchors.top: headerBar.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
                 contentHeight: mainColumn.height + 40
                 clip: true
+
                 DragHandler {
-                       id: dragHandler
-                       target: null  // هیچ هدفی را حرکت نمی‌دهیم
-                       property point startPoint
+                    id: dragHandler
+                    target: null  // هیچ هدفی را حرکت نمی‌دهیم
+                    property point startPoint
 
-                       onActiveChanged: {
-                           if (active) {
-                               startPoint = centroid.position
-                           } else {
-                               var deltaX = centroid.position.x - startPoint.x
-                               var deltaY = centroid.position.y - startPoint.y
+                    onActiveChanged: {
+                        if (active) {
+                            startPoint = centroid.position
+                        } else {
+                            var deltaX = centroid.position.x - startPoint.x
+                            var deltaY = centroid.position.y - startPoint.y
 
-                               // اگر حرکت بیشتر افقی بوده و از آستانه بیشتر است
-                               if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
-                                   if (deltaX > 0) {
-                                       logger.log("Swiped Right")
-                                       // اینجا می‌توانید تابع goBack را فراخوانی کنید
-                                        patientInfoCardShadow.visible = false
-                                       nationalIdField.text = ""
-                                       errorMessage.visible = false
-                                   } else {
-                                       logger.log("Swiped Left")
-                                   }
-                               }
-                           }
-                       }
-                   }
+                            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+                                if (deltaX > 0) {
+                                    logger.log("Swiped Right")
+                                    patientInfoCardShadow.visible = false
+                                    nationalIdField.text = ""
+                                    errorMessage.visible = false
+                                }
+                            }
+                        }
+                    }
+                }
+
                 ColumnLayout {
                     id: mainColumn
-                    anchors {
-                        top: parent.top
-                        topMargin: 20
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.top: parent.top
+                    anchors.topMargin: 20
+                    anchors.horizontalCenter: parent.horizontalCenter
                     width: parent.width * 0.9
                     spacing: 20
 
@@ -194,45 +193,60 @@ Item {
 
                         Rectangle {
                             id: searchCard
-                            anchors {
-                                fill: parent
-                                margins: 2
-                            }
+                            anchors.fill: parent
+                            anchors.margins: 2
                             radius: 10
                             color: cardColor
 
                             ColumnLayout {
                                 id: searchColumn
-                                anchors {
-                                    top: parent.top
-                                    topMargin: 20
-                                    horizontalCenter: parent.horizontalCenter
-                                }
+                                anchors.top: parent.top
+                                anchors.topMargin: 20
+                                anchors.horizontalCenter: parent.horizontalCenter
                                 width: parent.width * 0.9
                                 spacing: 15
 
-                                // عنوان کارت
-                                Text {
-                                    text: "جستجوی بیمار"
-                                    font {
-                                        family: "Tahoma"
-                                        pixelSize: 20
-                                        bold: true
-                                    }
-                                    color: primaryColor
+                                RowLayout {
                                     Layout.alignment: Qt.AlignHCenter
+                                    spacing: 10
+
+                                    Text {
+                                        text: "جستجوی بیمار"
+                                        font.family: "Tahoma"
+                                        font.pixelSize: 20
+                                        font.bold: true
+                                        color: primaryColor
+                                    }
+
+                                    Image {
+                                        source: "images/medical-report.png"
+                                        width: 60
+                                        height: 60
+                                        sourceSize.width: 24
+                                        sourceSize.height: 24
+                                    }
                                 }
 
-                                // توضیحات
-                                Text {
-                                    id: lblPatientCodeMeli
-                                    text: "لطفاً کد ملی بیمار را وارد کنید"
-                                    font {
-                                        family: "Tahoma"
-                                        pixelSize: 14
-                                    }
-                                    color: "#757575"
+                                // توضیحات with icon
+                                RowLayout {
                                     Layout.alignment: Qt.AlignHCenter
+                                    spacing: 8
+
+                                    Text {
+                                        id: lblPatientCodeMeli
+                                        text: "جستجو با کد ملی بیمار انجام می شود"
+                                        font.family: "Tahoma"
+                                        font.pixelSize: 14
+                                        color: "#757575"
+                                    }
+
+                                    Image {
+                                        source: "images/info-icon.png"
+                                        width: 16
+                                        height: 16
+                                        sourceSize.width: 16
+                                        sourceSize.height: 16
+                                    }
 
                                     MouseArea {
                                         anchors.fill: parent
@@ -257,15 +271,11 @@ Item {
 
                                     TextField {
                                         id: nationalIdField
-                                        anchors {
-                                            fill: parent
-                                            margins: 5
-                                        }
+                                        anchors.fill: parent
+                                        anchors.margins: 5
                                         placeholderText: "کد ملی را وارد کنید..."
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 18
-                                        }
+                                        font.family: "Tahoma"
+                                        font.pixelSize: 18
                                         color: textColor
                                         horizontalAlignment: TextInput.AlignHCenter
                                         verticalAlignment: TextInput.AlignVCenter
@@ -276,7 +286,6 @@ Item {
                                             color: "transparent"
                                         }
 
-                                        // اضافه کردن onActiveFocusChanged برای مدیریت خودکار کیبورد
                                         onActiveFocusChanged: {
                                             if (activeFocus && globalKeyboard) {
                                                 globalKeyboard.show(nationalIdField)
@@ -285,15 +294,12 @@ Item {
                                             }
                                         }
 
-                                        // اعتبارسنجی دستی به جای RegExpValidator
                                         onTextChanged: {
                                             // حذف کاراکترهای غیر عددی
                                             var newText = text.replace(/[^0-9]/g, "")
                                             if (newText !== text) {
                                                 text = newText
                                             }
-
-                                            // پنهان کردن پیام خطا در صورت تغییر متن
                                             errorMessage.visible = false
                                         }
 
@@ -315,75 +321,43 @@ Item {
                                     id: errorMessage
                                     text: ""
                                     color: "#F44336"
-                                    font {
-                                        family: "Tahoma"
-                                        pixelSize: 14
-                                    }
+                                    font.family: "Tahoma"
+                                    font.pixelSize: 14
                                     visible: false
                                     Layout.alignment: Qt.AlignHCenter
                                 }
 
-                                // دکمه جستجو
+                                // دکمه جستجو با آیکون
                                 Rectangle {
                                     id: searchButtonShadow
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 70
                                     color: "#20000000"
                                     radius: 10
-
-                                    // اضافه کردن خاصیت برای تغییر سایه هنگام فشردن دکمه
                                     property bool buttonPressed: searchMouseArea.pressed
 
-                                    // انیمیشن تغییر رنگ سایه
-                                    Behavior on color {
-                                        ColorAnimation { duration: 100 }
-                                    }
-
-                                    // حالت‌های سایه
                                     states: [
                                         State {
                                             name: "pressed"
-                                            when: buttonPressed
+                                            when: searchButtonShadow.buttonPressed
                                             PropertyChanges {
                                                 target: searchButtonShadow
-                                                color: "#40000000"  // سایه تیره‌تر هنگام فشردن
-                                            }
-                                        }
-                                    ]
-
-                                    transitions: [
-                                        Transition {
-                                            from: ""
-                                            to: "pressed"
-                                            ColorAnimation {
-                                                duration: 100
-                                            }
-                                        },
-                                        Transition {
-                                            from: "pressed"
-                                            to: ""
-                                            ColorAnimation {
-                                                duration: 200
+                                                color: "#40000000"
                                             }
                                         }
                                     ]
 
                                     Rectangle {
                                         id: searchButton
-                                        anchors {
-                                            fill: parent
-                                            bottomMargin: searchMouseArea.pressed ? 1 : 3
-                                            leftMargin: 2
-                                            rightMargin: 2
-                                            topMargin: 2
-                                        }
+                                        anchors.fill: parent
+                                        anchors.bottomMargin: searchMouseArea.pressed ? 1 : 3
+                                        anchors.leftMargin: 2
+                                        anchors.rightMargin: 2
+                                        anchors.topMargin: 2
                                         color: searchMouseArea.pressed ? Qt.darker(primaryColor, 1.2) : primaryColor
                                         radius: 10
-
-                                        // اضافه کردن خاصیت برای حالت هاور
                                         property bool isHovered: false
 
-                                        // انیمیشن کلیک
                                         SequentialAnimation {
                                             id: clickAnimation
                                             PropertyAnimation {
@@ -404,15 +378,26 @@ Item {
                                             }
                                         }
 
-                                        Text {
-                                            text: "جستجو"
-                                            color: "white"
-                                            font {
-                                                family: "Tahoma"
-                                                pixelSize: 20
-                                                bold: true
-                                            }
+                                        Row {
+                                            spacing: 10
                                             anchors.centerIn: parent
+
+                                            Text {
+                                                text: "جستجو"
+                                                color: "white"
+                                                font.family: "Tahoma"
+                                                font.pixelSize: 20
+                                                font.bold: true
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+                                            Image {
+                                                source: "images/search.png"
+                                                width: 34
+                                                height: 34
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                sourceSize.width: 34
+                                                sourceSize.height: 34
+                                            }
                                         }
 
                                         MouseArea {
@@ -420,23 +405,18 @@ Item {
                                             anchors.fill: parent
                                             hoverEnabled: true
 
-                                            // اضافه کردن رویدادهای هاور
                                             onEntered: parent.isHovered = true
                                             onExited: parent.isHovered = false
 
                                             onClicked: {
-                                                // شروع انیمیشن کلیک
                                                 clickAnimation.start()
 
-                                                // کد قبلی
-                                                // مخفی کردن کیبورد قبل از جستجو
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
                                                 }
 
                                                 if (nationalIdField.text.length === 10) {
                                                     errorMessage.visible = false
-                                                    // فراخوانی تابع جستجوی بیمار در backend
                                                     patientBackend.searchPatient(nationalIdField.text)
                                                 } else {
                                                     errorMessage.text = "کد ملی باید 10 رقم باشد"
@@ -445,11 +425,10 @@ Item {
                                             }
                                         }
 
-                                        // اضافه کردن حالت‌ها برای انیمیشن هاور
                                         states: [
                                             State {
                                                 name: "hovered"
-                                                when: isHovered
+                                                when: searchButton.isHovered
                                                 PropertyChanges {
                                                     target: searchButton
                                                     scale: 1.05
@@ -484,67 +463,37 @@ Item {
                                     }
                                 }
 
-                                // دکمه ثبت بیمار جدید
+                                // دکمه ثبت بیمار جدید با آیکون
                                 Rectangle {
                                     id: newPatientButtonShadow
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 70
                                     color: "#20000000"
                                     radius: 10
-
-                                    // اضافه کردن خاصیت برای تغییر سایه هنگام فشردن دکمه
                                     property bool buttonPressed: newPatientMouseArea.pressed
 
-                                    // انیمیشن تغییر رنگ سایه
-                                    Behavior on color {
-                                        ColorAnimation { duration: 100 }
-                                    }
-
-                                    // حالت‌های سایه
                                     states: [
                                         State {
                                             name: "pressed"
-                                            when: buttonPressed
+                                            when: newPatientButtonShadow.buttonPressed
                                             PropertyChanges {
                                                 target: newPatientButtonShadow
-                                                color: "#40000000"  // سایه تیره‌تر هنگام فشردن
-                                            }
-                                        }
-                                    ]
-
-                                    transitions: [
-                                        Transition {
-                                            from: ""
-                                            to: "pressed"
-                                            ColorAnimation {
-                                                duration: 100
-                                            }
-                                        },
-                                        Transition {
-                                            from: "pressed"
-                                            to: ""
-                                            ColorAnimation {
-                                                duration: 200
+                                                color: "#40000000"
                                             }
                                         }
                                     ]
 
                                     Rectangle {
                                         id: newPatientButton
-                                        anchors {
-                                            fill: parent
-                                            bottomMargin: newPatientMouseArea.pressed ? 1 : 3
-                                            leftMargin: 2
-                                            rightMargin: 2
-                                            topMargin: 2
-                                        }
+                                        anchors.fill: parent
+                                        anchors.bottomMargin: newPatientMouseArea.pressed ? 1 : 3
+                                        anchors.leftMargin: 2
+                                        anchors.rightMargin: 2
+                                        anchors.topMargin: 2
                                         color: newPatientMouseArea.pressed ? Qt.darker(accentColor, 1.2) : accentColor
                                         radius: 10
-
-                                        // اضافه کردن خاصیت برای حالت هاور
                                         property bool isHovered: false
 
-                                        // انیمیشن کلیک
                                         SequentialAnimation {
                                             id: newPatientClickAnimation
                                             PropertyAnimation {
@@ -576,7 +525,7 @@ Item {
                                                     "x": mouseX - rippleSize/2,
                                                     "y": mouseY - rippleSize/2
                                                 });
-                                                ripple.destroy(800); // حذف خودکار بعد از اتمام انیمیشن
+                                                ripple.destroy(800);
                                             }
 
                                             property real rippleSize: Math.max(width, height) * 2
@@ -609,15 +558,27 @@ Item {
                                             }
                                         }
 
-                                        Text {
-                                            text: "ثبت بیمار جدید"
-                                            color: "white"
-                                            font {
-                                                family: "Tahoma"
-                                                pixelSize: 20
-                                                bold: true
-                                            }
+                                        Row {
+                                            spacing: 20
                                             anchors.centerIn: parent
+
+
+                                            Text {
+                                                text: "ثبت بیمار جدید"
+                                                color: "white"
+                                                font.family: "Tahoma"
+                                                font.pixelSize: 20
+                                                font.bold: true
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
+                                            Image {
+                                                source: "images/save.png"
+                                                width: 34
+                                                height: 34
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                sourceSize.width: 34
+                                                sourceSize.height: 34
+                                            }
                                         }
 
                                         MouseArea {
@@ -625,17 +586,13 @@ Item {
                                             anchors.fill: parent
                                             hoverEnabled: true
 
-                                            // اضافه کردن رویدادهای هاور
                                             onEntered: parent.isHovered = true
                                             onExited: parent.isHovered = false
 
                                             onClicked: {
-                                                // شروع انیمیشن کلیک و موج
                                                 newPatientClickAnimation.start()
                                                 rippleArea.createRipple(mouse.x, mouse.y)
 
-                                                // کد قبلی
-                                                // مخفی کردن کیبورد قبل از تغییر صفحه
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
                                                 }
@@ -647,28 +604,15 @@ Item {
                                                     return
                                                 }
 
-                                                // بررسی وجود بیمار با این کد ملی
                                                 isCheckingPatientExists = true
                                                 patientBackend.checkPatientExists(nationalIdField.text)
-
-                                                // اتصال به سیگنال بعد از push
-                                                if (newPage) {
-                                                    logger.log("Successfully pushed NewPatientPage")
-                                                    newPage.backRequested.connect(function() {
-                                                        logger.log("backRequested signal received from new patient page")
-                                                        appStackView.pop()
-                                                    })
-                                                } else {
-                                                    logger.log("Failed to push NewPatientPage")
-                                                }
                                             }
                                         }
 
-                                        // اضافه کردن حالت‌ها برای انیمیشن هاور
                                         states: [
                                             State {
                                                 name: "hovered"
-                                                when: isHovered
+                                                when: newPatientButton.isHovered
                                                 PropertyChanges {
                                                     target: newPatientButton
                                                     scale: 1.05
@@ -718,20 +662,16 @@ Item {
 
                         Rectangle {
                             id: patientInfoCard
-                            anchors {
-                                fill: parent
-                                margins: 2
-                            }
+                            anchors.fill: parent
+                            anchors.margins: 2
                             radius: 10
                             color: cardColor
 
                             ColumnLayout {
                                 id: infoColumn
-                                anchors {
-                                    top: parent.top
-                                    topMargin: 20
-                                    horizontalCenter: parent.horizontalCenter
-                                }
+                                anchors.top: parent.top
+                                anchors.topMargin: 20
+                                anchors.horizontalCenter: parent.horizontalCenter
                                 width: parent.width * 0.9
                                 spacing: 15
 
@@ -742,115 +682,132 @@ Item {
                                     color: primaryColor
                                     radius: 8
 
-                                    Text {
-                                        text: "اطلاعات بیمار"
-                                        color: "white"
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 18
-                                            bold: true
-                                        }
+                                    Row {
+                                        spacing: 8
                                         anchors.centerIn: parent
+
+                                        Image {
+                                            source: "images/user-info-icon.png"
+                                            width: 22
+                                            height: 22
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            sourceSize.width: 22
+                                            sourceSize.height: 22
+                                        }
+
+                                        Text {
+                                            text: "اطلاعات بیمار"
+                                            color: "white"
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 18
+                                            font.bold: true
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
                                     }
                                 }
 
-                                // اطلاعات بیمار
-                                GridLayout {
+                                ColumnLayout {
                                     Layout.fillWidth: true
-                                    columns: 2
-                                    rowSpacing: 15
-                                    columnSpacing: 15
+                                    spacing: 25
 
                                     // کد ملی
-                                    Text {
-                                        text: "کد ملی:"
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
-                                            bold: true
-                                        }
-                                        color: textColor
-                                        Layout.alignment: Qt.AlignRight
-                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        layoutDirection: Qt.RightToLeft  // چیدمان از راست به چپ
 
-                                    Text {
-                                        id: patientCodemeliText
-                                        text: ""
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
+                                        Text {
+                                            text: "کد ملی:"
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            font.bold: true
+                                            color: textColor
                                         }
-                                        color: textColor
+
+                                        Text {
+                                            id: patientCodemeliText
+                                            text: ""
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            color: textColor
+                                            Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignRight
+                                        }
                                     }
 
                                     // نام
-                                    Text {
-                                        text: "نام:"
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
-                                            bold: true
-                                        }
-                                        color: textColor
-                                        Layout.alignment: Qt.AlignRight
-                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        layoutDirection: Qt.RightToLeft
 
-                                    Text {
-                                        id: patientNameText
-                                        text: ""
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
+                                        Text {
+                                            text: "نام:"
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            font.bold: true
+                                            color: textColor
                                         }
-                                        color: textColor
+
+                                        Text {
+                                            id: patientNameText
+                                            text: ""
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            color: textColor
+                                            Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignRight
+                                        }
                                     }
 
                                     // سن
-                                    Text {
-                                        text: "سن:"
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
-                                            bold: true
-                                        }
-                                        color: textColor
-                                        Layout.alignment: Qt.AlignRight
-                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        layoutDirection: Qt.RightToLeft
 
-                                    Text {
-                                        id: patientAgeText
-                                        text: ""
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
+                                        Text {
+                                            text: "سن:"
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            font.bold: true
+                                            color: textColor
                                         }
-                                        color: textColor
+
+                                        Text {
+                                            id: patientAgeText
+                                            text: ""
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            color: textColor
+                                            Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignRight
+                                        }
                                     }
 
                                     // جنسیت
-                                    Text {
-                                        text: "جنسیت:"
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
-                                            bold: true
-                                        }
-                                        color: textColor
-                                        Layout.alignment: Qt.AlignRight
-                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        layoutDirection: Qt.RightToLeft
 
-                                    Text {
-                                        id: patientGenderText
-                                        text: ""
-                                        font {
-                                            family: "Tahoma"
-                                            pixelSize: 16
+                                        Text {
+                                            text: "جنسیت:"
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            font.bold: true
+                                            color: textColor
                                         }
-                                        color: textColor
+
+                                        Text {
+                                            id: patientGenderText
+                                            text: ""
+                                            font.family: "Tahoma"
+                                            font.pixelSize: 16
+                                            color: textColor
+                                            Layout.fillWidth: true
+                                            horizontalAlignment: Text.AlignRight
+                                        }
                                     }
                                 }
 
-                                // دکمه ویرایش اطلاعات
+                                // دکمه ویرایش اطلاعات با آیکون
                                 Rectangle {
                                     id: editButtonShadow
                                     Layout.fillWidth: true
@@ -860,25 +817,35 @@ Item {
 
                                     Rectangle {
                                         id: editButton
-                                        anchors {
-                                            fill: parent
-                                            bottomMargin: editMouseArea.pressed ? 1 : 3
-                                            leftMargin: 2
-                                            rightMargin: 2
-                                            topMargin: 2
-                                        }
+                                        anchors.fill: parent
+                                        anchors.bottomMargin: editMouseArea.pressed ? 1 : 3
+                                        anchors.leftMargin: 2
+                                        anchors.rightMargin: 2
+                                        anchors.topMargin: 2
                                         color: editMouseArea.pressed ? Qt.darker("#FFC107", 1.2) : "#FFC107"
                                         radius: 10
 
-                                        Text {
-                                            text: "ویرایش اطلاعات"
-                                            color: "#212121"
-                                            font {
-                                                family: "Tahoma"
-                                                pixelSize: 20
-                                                bold: true
-                                            }
+                                        Row {
+                                            spacing: 10
                                             anchors.centerIn: parent
+
+                                            Image {
+                                                source: "images/edit.png"
+                                                width: 22
+                                                height: 22
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                sourceSize.width: 22
+                                                sourceSize.height: 22
+                                            }
+
+                                            Text {
+                                                text: "ویرایش اطلاعات"
+                                                color: "#212121"
+                                                font.family: "Tahoma"
+                                                font.pixelSize: 20
+                                                font.bold: true
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
                                         }
 
                                         MouseArea {
@@ -887,13 +854,11 @@ Item {
                                             hoverEnabled: true
 
                                             onClicked: {
-                                                // مخفی کردن کیبورد قبل از تغییر صفحه
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
                                                 }
 
                                                 logger.log("ویرایش اطلاعات بیمار")
-                                                // باز کردن صفحه ویرایش بیمار
                                                 var newPage = appStackView.push("NewPatientPage.qml", {
                                                     "isEditMode": true,
                                                     "currentPatientCodemeli": String(patientCodemeliText.text),
@@ -901,10 +866,9 @@ Item {
                                                     "patientAge": parseInt(patientAgeText.text),
                                                     "patientGender": patientGenderText.text === "مرد" ? 1 : 0,
                                                     "stackView": appStackView,
-                                                    "globalKeyboard": globalKeyboard // ارسال کیبورد به صفحه بعدی
+                                                    "globalKeyboard": globalKeyboard
                                                 })
 
-                                                // اتصال به سیگنال بعد از push
                                                 if (newPage) {
                                                     logger.log("Successfully pushed NewPatientPage for editing")
                                                     newPage.backRequested.connect(function() {
@@ -921,7 +885,7 @@ Item {
                                     }
                                 }
 
-                                // دکمه پلاسما تراپی
+                                // دکمه پلاسما تراپی با آیکون
                                 Rectangle {
                                     id: therapyButtonShadow
                                     Layout.fillWidth: true
@@ -931,25 +895,35 @@ Item {
 
                                     Rectangle {
                                         id: therapyButton
-                                        anchors {
-                                            fill: parent
-                                            bottomMargin: therapyMouseArea.pressed ? 1 : 3
-                                            leftMargin: 2
-                                            rightMargin: 2
-                                            topMargin: 2
-                                        }
+                                        anchors.fill: parent
+                                        anchors.bottomMargin: therapyMouseArea.pressed ? 1 : 3
+                                        anchors.leftMargin: 2
+                                        anchors.rightMargin: 2
+                                        anchors.topMargin: 2
                                         color: therapyMouseArea.pressed ? Qt.darker("#4CAF50", 1.2) : "#4CAF50"
                                         radius: 10
 
-                                        Text {
-                                            text: "پلاسما تراپی"
-                                            color: "white"
-                                            font {
-                                                family: "Tahoma"
-                                                pixelSize: 20
-                                                bold: true
-                                            }
+                                        Row {
+                                            spacing: 10
                                             anchors.centerIn: parent
+
+                                            Image {
+                                                source: "images/therapy.png"
+                                                width: 24
+                                                height: 24
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                sourceSize.width: 24
+                                                sourceSize.height: 24
+                                            }
+
+                                            Text {
+                                                text: "پلاسما تراپی"
+                                                color: "white"
+                                                font.family: "Tahoma"
+                                                font.pixelSize: 20
+                                                font.bold: true
+                                                anchors.verticalCenter: parent.verticalCenter
+                                            }
                                         }
 
                                         MouseArea {
@@ -958,23 +932,20 @@ Item {
                                             hoverEnabled: true
 
                                             onClicked: {
-                                                // مخفی کردن کیبورد قبل از تغییر صفحه
                                                 if (globalKeyboard && globalKeyboard.visible) {
                                                     globalKeyboard.hide()
                                                 }
 
                                                 logger.log("ثبت نوبت جدید برای بیمار با کد ملی:", patientCodemeliText.text)
-                                                // باز کردن صفحه PlasmaTherapy.qml
                                                 var therapyPage = appStackView.push("PlasmaTherapy.qml", {
                                                     "patientCodemeli": patientCodemeliText.text,
                                                     "patientName": patientNameText.text,
                                                     "patientAge": parseInt(patientAgeText.text || "0"),
                                                     "patientGender": patientGenderText.text === "مرد" ? 1 : 0,
                                                     "stackView": appStackView,
-                                                    "globalKeyboard": globalKeyboard // ارسال کیبورد به صفحه بعدی
+                                                    "globalKeyboard": globalKeyboard
                                                 })
 
-                                                // اتصال به سیگنال بعد از push
                                                 if (therapyPage && therapyPage.backRequested) {
                                                     therapyPage.backRequested.connect(function() {
                                                         logger.log("backRequested signal received from therapy page")
@@ -993,36 +964,47 @@ Item {
                         }
                     }
 
-                    // دکمه گزارش‌گیری در پایین صفحه
+                    // دکمه گزارش‌گیری در پایین صفحه با آیکون
                     Rectangle {
                         id: reportButtonShadow
                         Layout.fillWidth: true
                         Layout.preferredHeight: 70
                         color: "#20000000"
                         radius: 10
-                        visible: true // همیشه نمایش داده شود
+                        visible: true
 
                         Rectangle {
                             id: reportButton
-                            anchors {
-                                fill: parent
-                                bottomMargin: reportMouseArea.pressed ? 1 : 3
-                                leftMargin: 2
-                                rightMargin: 2
-                                topMargin: 2
-                            }
+                            anchors.fill: parent
+                            anchors.bottomMargin: reportMouseArea.pressed ? 1 : 3
+                            anchors.leftMargin: 2
+                            anchors.rightMargin: 2
+                            anchors.topMargin: 2
                             color: reportMouseArea.pressed ? Qt.darker("#673AB7", 1.2) : "#673AB7"
                             radius: 10
                             visible: false
-                            Text {
-                                text: "گزارش‌گیری و آمار"
-                                color: "white"
-                                font {
-                                    family: "Tahoma"
-                                    pixelSize: 20
-                                    bold: true
-                                }
+
+                            Row {
+                                spacing: 10
                                 anchors.centerIn: parent
+
+                                Image {
+                                    source: "images/chart.png"
+                                    width: 24
+                                    height: 24
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    sourceSize.width: 24
+                                    sourceSize.height: 24
+                                }
+
+                                Text {
+                                    text: "گزارش‌گیری و آمار"
+                                    color: "white"
+                                    font.family: "Tahoma"
+                                    font.pixelSize: 20
+                                    font.bold: true
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
                             }
 
                             MouseArea {
@@ -1031,20 +1013,17 @@ Item {
                                 hoverEnabled: true
 
                                 onClicked: {
-                                    // مخفی کردن کیبورد قبل از تغییر صفحه
                                     if (globalKeyboard && globalKeyboard.visible) {
                                         globalKeyboard.hide()
                                     }
 
                                     logger.log("باز کردن صفحه گزارش‌گیری")
-                                    // باز کردن صفحه ReportPage.qml
                                     var reportPage = appStackView.push("ReportPage.qml", {
                                         "stackView": appStackView,
                                         "globalKeyboard": globalKeyboard,
                                         "reportBackend": reportBackend
                                     })
 
-                                    // اتصال به سیگنال بعد از push
                                     if (reportPage && reportPage.backRequested) {
                                         reportPage.backRequested.connect(function() {
                                             logger.log("backRequested signal received from report page")
@@ -1066,68 +1045,55 @@ Item {
             Connections {
                 target: patientBackend
 
-                  function onPatientExistsResult(exists) {
-                        if (isCheckingPatientExists) {
-                            isCheckingPatientExists = false
+                function onPatientExistsResult(exists) {
+                    if (isCheckingPatientExists) {
+                        isCheckingPatientExists = false
 
-                            if (exists) {
-                                // بیمار قبلاً ثبت شده است
-                                errorMessage.text = "بیماری با این کد ملی قبلاً ثبت شده است"
-                                errorMessage.visible = true
-                            } else {
-                                // بیمار جدید است، باز کردن صفحه ثبت
-                                var newPage = appStackView.push("NewPatientPage.qml", {
-                                    "isEditMode": false,
-                                    "searchedCodemeli": nationalIdField.text,
-                                    "stackView": appStackView,
-                                    "globalKeyboard": globalKeyboard // ارسال کیبورد به صفحه بعدی
+                        if (exists) {
+                            errorMessage.text = "بیماری با این کد ملی قبلاً ثبت شده است"
+                            errorMessage.visible = true
+                        } else {
+                            var newPage = appStackView.push("NewPatientPage.qml", {
+                                "isEditMode": false,
+                                "searchedCodemeli": nationalIdField.text,
+                                "stackView": appStackView,
+                                "globalKeyboard": globalKeyboard
+                            })
+
+                            if (newPage) {
+                                logger.log("Successfully pushed NewPatientPage")
+                                newPage.backRequested.connect(function() {
+                                    logger.log("backRequested signal received from new patient page")
+                                    appStackView.pop()
                                 })
-
-                                // اتصال به سیگنال بعد از push
-                                if (newPage) {
-                                    logger.log("Successfully pushed NewPatientPage")
-                                    newPage.backRequested.connect(function() {
-                                        logger.log("backRequested signal received from new patient page")
-                                        appStackView.pop()
-                                    })
-                                } else {
-                                    logger.log("Failed to push NewPatientPage")
-                                }
+                            } else {
+                                logger.log("Failed to push NewPatientPage")
                             }
                         }
                     }
+                }
 
                 function onPatientFound(codemeli, name, age, gender) {
                     logger.log("Patient found signal received:", codemeli, name, age, gender)
 
-                    // پر کردن فیلدهای اطلاعات بیمار
                     patientCodemeliText.text = codemeli
                     patientNameText.text = name
                     patientAgeText.text = age.toString()
                     patientGenderText.text = gender === 1 ? "مرد" : "زن"
 
-                    // نمایش کارت اطلاعات بیمار
                     patientInfoCardShadow.visible = true
-
-                    // انیمیشن نمایش اطلاعات
                     patientInfoCardAnimation.start()
                 }
 
                 function onPatientNotFound() {
                     logger.log("Patient not found signal received")
-
-                    // نمایش پیام خطا
                     errorMessage.text = "بیماری با این کد ملی یافت نشد"
                     errorMessage.visible = true
-
-                    // مخفی کردن کارت اطلاعات بیمار
                     patientInfoCardShadow.visible = false
                 }
 
                 function onErrorOccurred(errorMsg) {
                     logger.log("Error occurred:", errorMsg)
-
-                    // نمایش پیام خطا
                     errorMessage.text = errorMsg
                     errorMessage.visible = true
                 }
