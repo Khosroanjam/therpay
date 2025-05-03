@@ -1,13 +1,12 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 Item {
     id: plasmaTimerRoot
-    width: parent ? parent.width : 800
-    height: parent ? parent.height : 850
-
+    //width: parent ? parent.width : 800
+    //height: parent ? parent.height : 850
+    anchors.fill: parent
     // سیگنال برای بازگشت به صفحه قبل
     signal goBack()
 
@@ -142,10 +141,10 @@ Item {
 
             // عنوان صفحه
             Text {
-                text: "تایمر پلاسما تراپی"
+                text: "Plasma Therapy Timer"
                 font {
                     family: "Tahoma"
-                    pixelSize: 18
+                    pixelSize: 20
                     bold: true
                 }
                 color: "white"
@@ -164,120 +163,273 @@ Item {
             }
             spacing: 20
 
-            // اطلاعات بیمار و درمان
+            // کارت اطلاعات بیمار و هندپیس‌ها
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 180  // ارتفاع بیشتر برای اطلاعات اضافی
-                color: "white"
+                Layout.preferredHeight: 180
+                color: "#f5f5f5"
                 radius: 10
 
-                // سایه ساده با استفاده از Rectangle
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: parent.width + 6
-                    height: parent.height + 6
-                    radius: 10
-                    color: "#20000000"
-                    z: -1
-                }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 20
 
-                // استفاده از Column به جای ColumnLayout
-                Column {
-                    id: infoLayout
-                    anchors {
-                        fill: parent
-                        margins: 20
-                    }
-                    spacing: 15  // فاصله بین آیتم‌ها
-
-                    // نام بیمار
-                    Item {
-                        width: parent.width
-                        height: patientNameText.height
-
-                        Text {
-                            id: patientNameText
-                            width: parent.width
-                            text: "نام بیمار: " + patientName
-                            font {
-                                family: "Tahoma"
-                                pixelSize: 16
-                            }
-                            color: "#424242"
-                            elide: Text.ElideRight
-                            wrapMode: Text.NoWrap
-                        }
-                    }
-
-                    // کد ملی
-                    Item {
-                        width: parent.width
-                        height: patientCodeText.height
-
-                        Text {
-                            id: patientCodeText
-                            width: parent.width
-                            text: "کد ملی: " + patientCodemeli
-                            font {
-                                family: "Tahoma"
-                                pixelSize: 16
-                            }
-                            color: "#424242"
-                            elide: Text.ElideRight
-                            wrapMode: Text.NoWrap
-                        }
-                    }
-
-                    // نوع درمان
-                    Item {
-                        width: parent.width
-                        height: diseaseNameText.height
-
-                        Text {
-                            id: diseaseNameText
-                            width: parent.width
-                            text: "نوع درمان: " + diseaseName
-                            //text: patientId + "" + diseaseId
-                            font {
-                                family: "Tahoma"
-                                pixelSize: 16
-                                bold: true
-                            }
-                            color: "#1976D2"
-                            elide: Text.ElideRight
-                            wrapMode: Text.NoWrap
-                        }
-                    }
-
-                    // خط جداکننده
+                    // کارت اطلاعات بیمار
                     Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: "#E0E0E0"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: "#86e4eb"
+                        radius: 10
+
+                        // سایه ساده با استفاده از Rectangle
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width + 6
+                            height: parent.height + 6
+                            radius: 10
+                            color: "#20000000"
+                            z: -1
+                        }
+
+                        // استفاده از Column به جای ColumnLayout
+                        Column {
+                            id: infoLayout
+                            anchors {
+                                fill: parent
+                                margins: 20
+                            }
+                            spacing: 8
+
+                            // نام بیمار
+                            Item {
+                                width: parent.width
+                                height: patientNameText.height
+
+                                Text {
+                                    id: patientNameText
+                                    width: parent.width
+                                    text: "Patient : " + patientName
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 16
+                                    }
+                                    color: "#424242"
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.NoWrap
+                                }
+                            }
+
+                            // کد ملی
+                            Item {
+                                width: parent.width
+                                height: patientCodeText.height
+
+                                Text {
+                                    id: patientCodeText
+                                    width: parent.width
+                                    text: "National Code : " + patientCodemeli
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 16
+                                    }
+                                    color: "#424242"
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.NoWrap
+                                }
+                            }
+
+                            // نوع درمان
+                            Item {
+                                width: parent.width
+                                height: diseaseNameText.height
+
+                                Text {
+                                    id: diseaseNameText
+                                    width: parent.width
+                                    text: "Type of Treatment : " + diseaseName
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 16
+                                        bold: true
+                                    }
+                                    color: "#1976D2"
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.NoWrap
+                                }
+                            }
+
+                            // خط جداکننده
+                            Rectangle {
+                                width: parent.width
+                                height: 1
+                                color: "#E0E0E0"
+                            }
+
+                            // اطلاعات جلسات قبلی
+                            Item {
+                                width: parent.width
+                                height: sessionsInfoText.height
+
+                                Text {
+                                    id: sessionsInfoText
+                                    width: parent.width
+                                    text: "Number of previous Therapy sessions : " + previousSessionsCount +
+                                          (lastSessionDate ? " (Last Session: " + lastSessionDate + ")" : "")
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 13
+                                    }
+                                    color: previousSessionsCount > 0 ? "#388E3C" : "#9E9E9E"
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.Wrap
+                                }
+                            }
+                        }
                     }
 
-                    // اطلاعات جلسات قبلی
-                    Item {
-                        width: parent.width
-                        height: sessionsInfoText.height
+                    // کارت هندپیس‌ها
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: "#86b8eb"
+                        radius: 10
 
-                        Text {
-                            id: sessionsInfoText
-                            width: parent.width
-                            text: "تعداد جلسات قبلی: " + previousSessionsCount +
-                                  (lastSessionDate ? " (آخرین جلسه: " + lastSessionDate + ")" : "")
-                            font {
-                                family: "Tahoma"
-                                pixelSize: 16
+                        // سایه برای کارت
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width + 6
+                            height: parent.height + 6
+                            radius: 10
+                            color: "#20000000"
+                            z: -1
+                        }
+
+                        ColumnLayout {
+                            anchors {
+                                fill: parent
+                                margins: 20
                             }
-                            color: previousSessionsCount > 0 ? "#388E3C" : "#9E9E9E"
-                            elide: Text.ElideRight
-                            wrapMode: Text.Wrap
+                            spacing: 8
+
+                            // عنوان
+                            Text {
+                                text: "Handpiece Selection"
+                                font {
+                                    family: "Tahoma"
+                                    pixelSize: 16
+                                    bold: true
+                                }
+                                color: "#1976D2"
+                                Layout.fillWidth: true
+                            }
+
+                            // چک باکس اول
+                            CheckBox {
+                                id: handpiece1
+                                text: "Argon"
+                                font.family: "Tahoma"
+                                font.pixelSize: 14
+                                checked: false
+                                Layout.fillWidth: true
+                                onCheckedChanged: {
+                                    if (checked) {
+                                        try {
+                                            // ارسال دستورات برای هندپیس 1
+                                            relayController.sendSerialCommand("R1ON")
+                                            logger.log("Sent command: R1ON")
+                                            relayController.sendSerialCommand("R2ON")
+                                            logger.log("Sent command: R2ON")
+                                        } catch (error) {
+                                            logger.log("Error in Handpiece 1 activation: " + error)
+                                            showToast("Error activating Handpiece 1")
+                                        }
+                                    } else {
+                                        try {
+                                            // ارسال دستورات خاموش کردن هندپیس 1
+                                            relayController.sendSerialCommand("R1OFF")
+                                            logger.log("Sent command: R1OFF")  // این خط اصلاح شد
+                                            relayController.sendSerialCommand("R2OFF")
+                                            logger.log("Sent command: R2OFF")
+                                        } catch (error) {
+                                            logger.log("Error in Handpiece 1 deactivation: " + error)
+                                            showToast("Error deactivating Handpiece 1")
+                                        }
+                                    }
+                                }
+                            }
+
+                            // چک باکس دوم
+                            CheckBox {
+                                id: handpiece2
+                                text: "Helium"
+                                font.family: "Tahoma"
+                                font.pixelSize: 14
+                                checked: false
+                                Layout.fillWidth: true
+                                onCheckedChanged: {
+                                    if (checked) {
+                                        try {
+                                            // ارسال دستورات برای هندپیس 2
+                                            relayController.sendSerialCommand("R3ON")
+                                            logger.log("Sent command: R3ON")
+                                            relayController.sendSerialCommand("R4ON")
+                                            logger.log("Sent command: R4ON")
+                                        } catch (error) {
+                                            logger.log("Error in Handpiece 2 activation: " + error)
+                                            showToast("Error activating Handpiece 2")
+                                        }
+                                    } else {
+                                        try {
+                                            // ارسال دستورات خاموش کردن هندپیس 2
+                                            relayController.sendSerialCommand("R3OFF")
+                                            logger.log("Sent command: R3OFF")
+                                            relayController.sendSerialCommand("R4OFF")
+                                            logger.log("Sent command: R4OFF")
+                                        } catch (error) {
+                                            logger.log("Error in Handpiece 2 deactivation: " + error)
+                                            showToast("Error deactivating Handpiece 2")
+                                        }
+                                    }
+                                }
+                            }
+
+                            // نمایش وضعیت
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 30
+                                color: "#E3F2FD"
+                                radius: 5
+                                visible: handpiece1.checked || handpiece2.checked
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: {
+                                        if (handpiece1.checked && handpiece2.checked)
+                                            return "Both Handpieces are active"
+                                        else if (handpiece1.checked)
+                                            return "Handpiece 1 is active"
+                                        else if (handpiece2.checked)
+                                            return "Handpiece 2 is active"
+                                        else
+                                            return ""
+                                    }
+                                    font {
+                                        family: "Tahoma"
+                                        pixelSize: 13
+                                    }
+                                    color: "#1976D2"
+                                }
+                            }
+
+                            // Spacer
+                            Item {
+                                Layout.fillHeight: true
+                            }
                         }
                     }
                 }
             }
-
             // نمایش تایمر با انیمیشن
             Rectangle {
                 Layout.fillWidth: true
@@ -318,44 +470,47 @@ Item {
                     Canvas {
                         id: progressCanvas
                         anchors.fill: parent
-                        antialiasing: true
 
-                        property color progressColor: isCompleted ? "#4CAF50" : (isRunning ? "#2196F3" : "#9E9E9E")
+                        // تعریف پراپرتی‌های مورد استفاده در onPaint
+                        property real centerX: width / 2
+                        property real centerY: height / 2
+                        property real radius: Math.min(width, height) / 2 - 10
+                        property real progress: progress   // progress از Item بیرون
+                        property color progressColor: isCompleted ? "#4CAF50"
+                                                 : isRunning   ? "#1976D2"
+                                                               : "#9E9E9E"
+                        property real glowWidth: 15
+                        property real glowOpacity: 0.3
 
                         onPaint: {
-                            var ctx = getContext("2d")
-                            var centerX = width / 2
-                            var centerY = height / 2
-                            var radius = Math.min(width, height) / 2 - 5
-
-                            // پاک کردن کانواس
-                            ctx.reset()
-
-                            // رسم کمان پیشرفت
-                            ctx.beginPath()
-                            ctx.lineWidth = 8
-                            ctx.strokeStyle = progressColor
-
-                            // شروع از بالا و حرکت ساعتگرد
-                            var startAngle = -Math.PI / 2
-                            var endAngle = startAngle + (2 * Math.PI * progress)
-
-                            ctx.arc(centerX, centerY, radius, startAngle, endAngle, false)
-                            ctx.stroke()
-
-                            // نقطه متحرک در انتهای کمان
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            ctx.beginPath();
+                            ctx.lineWidth = 8;
+                            // اگر در حال اجرا، افکت درخشش
                             if (isRunning) {
-                                var dotX = centerX + radius * Math.cos(endAngle)
-                                var dotY = centerY + radius * Math.sin(endAngle)
-
-                                ctx.beginPath()
-                                ctx.fillStyle = progressColor
-                                ctx.arc(dotX, dotY, 6, 0, 2 * Math.PI)
-                                ctx.fill()
+                                var gradient = ctx.createRadialGradient(
+                                    centerX, centerY, radius - glowWidth,
+                                    centerX, centerY, radius
+                                );
+                                gradient.addColorStop(0, Qt.rgba(
+                                    progressColor.r, progressColor.g, progressColor.b, glowOpacity
+                                ));
+                                gradient.addColorStop(1, Qt.rgba(
+                                    progressColor.r, progressColor.g, progressColor.b, 0
+                                ));
+                                ctx.strokeStyle = gradient;
+                            } else {
+                                ctx.strokeStyle = progressColor;
                             }
+                            ctx.arc(
+                                centerX, centerY, radius,
+                                -Math.PI/2,
+                                -Math.PI/2 + progress * 2 * Math.PI
+                            );
+                            ctx.stroke();
                         }
                     }
-
                     // افکت درخشش برای حالت در حال اجرا
                     Rectangle {
                         id: pulseEffect
@@ -786,10 +941,12 @@ Item {
             totalTimeInSeconds = (minutes * 60) + seconds
             initialMinutes = minutes
             initialSeconds = seconds
+            handpiece1.enabled = false
+            handpiece2.enabled = false
             showToast("تایمر شروع شد - در پایان زمان، جلسه ذخیره خواهد شد")
             // روشن کردن رله 1 هنگام شروع تایمر
             try {
-               relayController.setRelay(1, true)
+               //relayController.setRelay(1, true)
                logger.log("رله 1 روشن شد")
             } catch (error) {
                logger.log("خطا در روشن کردن رله: " + error)
@@ -797,10 +954,12 @@ Item {
         } else {
             showToast("تایمر متوقف شد")
             logger.log("تایمر متوقف شد")
+            handpiece1.enabled = true
+            handpiece2.enabled = true
             // خاموش کردن رله 1 هنگام توقف تایمر
             try {
-                relayController.setRelay(1, false)
-                logger.log("رله 1 خاموش شد")
+                //relayController.setRelay(1, false)
+                logger.log("Stop")
             } catch (error) {
                 logger.log("خطا در خاموش کردن رله: " + error)
           }
