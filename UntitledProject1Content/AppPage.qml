@@ -69,7 +69,7 @@ Item {
                 }
 
                 Text {
-                    text: "پلاسما تراپی"
+                    text: "Plasma Therapy"
                     color: "white"
                     font.family: "Tahoma"
                     font.pixelSize: 22
@@ -102,7 +102,7 @@ Item {
                         }
 
                         Text {
-                            text: "گزارش‌ها"
+                            text: "Report"
                             color: "white"
                             font.family: "Tahoma"
                             font.pixelSize: 14
@@ -211,7 +211,7 @@ Item {
                                     spacing: 10
 
                                     Text {
-                                        text: "جستجوی بیمار"
+                                        text: "Search Patient"
                                         font.family: "Tahoma"
                                         font.pixelSize: 20
                                         font.bold: true
@@ -383,7 +383,7 @@ Item {
                                             anchors.centerIn: parent
 
                                             Text {
-                                                text: "جستجو"
+                                                text: "Search"
                                                 color: "white"
                                                 font.family: "Tahoma"
                                                 font.pixelSize: 20
@@ -564,7 +564,7 @@ Item {
 
 
                                             Text {
-                                                text: "ثبت بیمار جدید"
+                                                text: "New Patient"
                                                 color: "white"
                                                 font.family: "Tahoma"
                                                 font.pixelSize: 20
@@ -696,7 +696,7 @@ Item {
                                         }
 
                                         Text {
-                                            text: "اطلاعات بیمار"
+                                            text: " Patient Info"
                                             color: "white"
                                             font.family: "Tahoma"
                                             font.pixelSize: 18
@@ -716,7 +716,7 @@ Item {
                                         layoutDirection: Qt.RightToLeft  // چیدمان از راست به چپ
 
                                         Text {
-                                            text: "کد ملی:"
+                                            text: "National Code:"
                                             font.family: "Tahoma"
                                             font.pixelSize: 16
                                             font.bold: true
@@ -740,7 +740,7 @@ Item {
                                         layoutDirection: Qt.RightToLeft
 
                                         Text {
-                                            text: "نام:"
+                                            text: "Name:"
                                             font.family: "Tahoma"
                                             font.pixelSize: 16
                                             font.bold: true
@@ -764,7 +764,7 @@ Item {
                                         layoutDirection: Qt.RightToLeft
 
                                         Text {
-                                            text: "سن:"
+                                            text: "Age:"
                                             font.family: "Tahoma"
                                             font.pixelSize: 16
                                             font.bold: true
@@ -788,7 +788,7 @@ Item {
                                         layoutDirection: Qt.RightToLeft
 
                                         Text {
-                                            text: "جنسیت:"
+                                            text: "Gender:"
                                             font.family: "Tahoma"
                                             font.pixelSize: 16
                                             font.bold: true
@@ -839,7 +839,7 @@ Item {
                                             }
 
                                             Text {
-                                                text: "ویرایش اطلاعات"
+                                                text: "Edit Info"
                                                 color: "#212121"
                                                 font.family: "Tahoma"
                                                 font.pixelSize: 20
@@ -917,7 +917,7 @@ Item {
                                             }
 
                                             Text {
-                                                text: "پلاسما تراپی"
+                                                text: "Plasma Therapy"
                                                 color: "white"
                                                 font.family: "Tahoma"
                                                 font.pixelSize: 20
@@ -998,7 +998,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: "گزارش‌گیری و آمار"
+                                    text: "Report"
                                     color: "white"
                                     font.family: "Tahoma"
                                     font.pixelSize: 20

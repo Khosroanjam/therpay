@@ -166,7 +166,7 @@ Item {
             }
 
             Text {
-                text: "گزارش‌گیری و آمار"
+                text: "Reporting and statistics"
                 color: "white"
                 font {
                     family: "Tahoma"
@@ -190,7 +190,7 @@ Item {
                 }
 
                 Text {
-                    text: "بازگشت"
+                    text: "Back"
                     color: "white"
                     font {
                         family: "Tahoma"
@@ -229,7 +229,7 @@ Item {
                 }
 
                 Text {
-                    text: "بازخوانی"
+                    text: "Refresh"
                     color: "white"
                     font {
                         family: "Tahoma"
@@ -263,7 +263,7 @@ Item {
 
             TabButton {
                 id: overviewTabButton
-                text: "آمار کلی"
+                text: "General Statistics"
                 font {
                     family: "Tahoma"
                     pixelSize: 14
@@ -274,7 +274,7 @@ Item {
 
             TabButton {
                 id: patientsTabButton
-                text: "لیست بیماران"
+                text: "Patients List"
                 font {
                     family: "Tahoma"
                     pixelSize: 14
@@ -285,7 +285,7 @@ Item {
 
             TabButton {
                 id: sessionsTabButton
-                text: "لیست جلسات"
+                text: "List of Therapy sessions"
                 font {
                     family: "Tahoma"
                     pixelSize: 14
@@ -296,7 +296,7 @@ Item {
 
             TabButton {
                 id: diseaseStatsTabButton
-                text: "آمار بیماری‌ها"
+                text: "Disease statistics"
                 font {
                     family: "Tahoma"
                     pixelSize: 14
@@ -348,7 +348,7 @@ Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 120
                                 radius: 10
-                                color: "white"
+                                color: "#FFCDD2"
 
                                 // سایه ساده
                                 Rectangle {
@@ -363,7 +363,7 @@ Item {
                                     spacing: 10
 
                                     Text {
-                                        text: "تعداد کل بیماران"
+                                        text: "Total number of patients"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 16
@@ -391,7 +391,7 @@ Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 120
                                 radius: 10
-                                color: "white"
+                                color: "#E1BEE7"
 
                                 // سایه ساده
                                 Rectangle {
@@ -406,7 +406,7 @@ Item {
                                     spacing: 10
 
                                     Text {
-                                        text: "تعداد کل جلسات"
+                                        text: "Total number of sessions"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 16
@@ -434,7 +434,7 @@ Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 120
                                 radius: 10
-                                color: "white"
+                                color: "#C5CAE9"
 
                                 // سایه ساده
                                 Rectangle {
@@ -449,7 +449,7 @@ Item {
                                     spacing: 10
 
                                     Text {
-                                        text: "جلسات ماه جاری"
+                                        text: "This month's sessions"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 16
@@ -478,7 +478,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 300
                             radius: 10
-                            color: "white"
+                            color: "#B2DFDB"
 
                             // سایه ساده
                             Rectangle {
@@ -496,7 +496,7 @@ Item {
                                 spacing: 10
 
                                 Text {
-                                    text: "توزیع انواع درمان"
+                                    text: "Distribution of treatment types"
                                     font {
                                         family: "Tahoma"
                                         pixelSize: 18
@@ -581,7 +581,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 300
                             radius: 10
-                            color: "white"
+                            color: "#FFCCBC"
 
                             // سایه ساده
                             Rectangle {
@@ -599,7 +599,7 @@ Item {
                                 spacing: 10
 
                                 Text {
-                                    text: "آمار هفتگی جلسات"
+                                    text: "Weekly Session Statistics"
                                     font {
                                         family: "Tahoma"
                                         pixelSize: 18
@@ -706,7 +706,7 @@ Item {
                         id: patientFiltersCard
                         Layout.fillWidth: true
                         Layout.preferredHeight: 70
-                        color: "white"
+                        color: "#F8BBD0"
                         radius: 10
 
                         // سایه ساده
@@ -827,7 +827,7 @@ Item {
                                         pixelSize: 14
                                         bold: true
                                     }
-                                    color: "white"
+                                    color: "#D1C4E9"
                                 }
 
                                 MouseArea {
@@ -860,7 +860,7 @@ Item {
                         id: patientsTableCard
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: "white"
+                        color: "#BBDEFB"
                         radius: 10
 
                         // سایه ساده
@@ -1213,7 +1213,7 @@ Item {
                                                     pixelSize: 12
                                                     bold: true
                                                 }
-                                                color: "white"
+                                                color: "#DCEDC8"
                                             }
 
                                             MouseArea {
@@ -1249,7 +1249,7 @@ Item {
                                                     pixelSize: 12
                                                     bold: true
                                                 }
-                                                color: "white"
+                                                color: "#B2DFDB"
                                             }
 
                                             MouseArea {
@@ -1303,7 +1303,7 @@ Item {
                         id: sessionFiltersCard
                         Layout.fillWidth: true
                         Layout.preferredHeight: 70
-                        color: "white"
+                        color: "#FFCCBC"
                         radius: 10
 
                         // سایه ساده
@@ -1428,13 +1428,13 @@ Item {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "جستجو"
+                                    text: "Search"
                                     font {
                                         family: "Tahoma"
                                         pixelSize: 14
                                         bold: true
                                     }
-                                    color: "white"
+                                    color: "#F8BBD0"
                                 }
 
                                 MouseArea {
@@ -1465,7 +1465,7 @@ Item {
                         id: sessionsTableCard
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: "white"
+                        color: "#D1C4E9"
                         radius: 10
 
                         // سایه ساده
@@ -1498,7 +1498,7 @@ Item {
                                     Text {
                                         Layout.preferredWidth: 50
                                         Layout.fillHeight: true
-                                        text: "ردیف"
+                                        text: "Row"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1518,7 +1518,7 @@ Item {
                                     Text {
                                         Layout.preferredWidth: 120
                                         Layout.fillHeight: true
-                                        text: "تاریخ جلسه"
+                                        text: " Session Date"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1538,7 +1538,7 @@ Item {
                                     Text {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
-                                        text: "نام بیمار"
+                                        text: "Patient"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1558,7 +1558,7 @@ Item {
                                     Text {
                                         Layout.preferredWidth: 150
                                         Layout.fillHeight: true
-                                        text: "نوع درمان"
+                                        text: "Type of Treatment"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1578,7 +1578,7 @@ Item {
                                     Text {
                                         Layout.preferredWidth: 80
                                         Layout.fillHeight: true
-                                        text: "مدت زمان"
+                                        text: "Time Duration"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1598,7 +1598,7 @@ Item {
                                     Text {
                                         Layout.preferredWidth: 80
                                         Layout.fillHeight: true
-                                        text: "وضعیت"
+                                        text: "Status"
                                         font {
                                             family: "Tahoma"
                                             pixelSize: 14
@@ -1809,7 +1809,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 50
                                             Layout.fillHeight: true
-                                            text: "ردیف"
+                                            text: "Row"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1829,7 +1829,7 @@ Item {
                                         Text {
                                             Layout.fillWidth: true
                                             Layout.fillHeight: true
-                                            text: "نام بیماری"
+                                            text: " Patient"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1849,7 +1849,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 100
                                             Layout.fillHeight: true
-                                            text: "تعداد جلسات"
+                                            text: " Number of sessions"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1869,7 +1869,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 100
                                             Layout.fillHeight: true
-                                            text: "اولین جلسه"
+                                            text: " First Session"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1889,7 +1889,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 100
                                             Layout.fillHeight: true
-                                            text: "آخرین جلسه"
+                                            text: "Last session "
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1909,7 +1909,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 100
                                             Layout.fillHeight: true
-                                            text: "میانگین زمان"
+                                            text: "Average Time"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14
@@ -1929,7 +1929,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 100
                                             Layout.fillHeight: true
-                                            text: "مجموع زمان"
+                                            text: " Total Time"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14

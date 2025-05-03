@@ -216,7 +216,7 @@ Item {
 
                         // عنوان فرم
                         Text {
-                            text: "لطفاً اطلاعات بیمار را وارد کنید"
+                            text: "Please enter patient Info"
                             font {
                                 family: "Tahoma"
                                 pixelSize: 16
@@ -232,7 +232,7 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "کد ملی:"
+                                text: "National Code:"
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -252,7 +252,7 @@ Item {
                                     id: codemeliField
                                     anchors.fill: parent
                                     anchors.margins: 2
-                                    placeholderText: "کد ملی 10 رقمی"
+                                    placeholderText: "Ten-digit national code"
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     maximumLength: 10
                                     enabled: !newPatientRoot.isEditMode
@@ -314,7 +314,7 @@ Item {
 
                             Text {
                                 id: codemeliError
-                                text: "کد ملی باید 10 رقم باشد"
+                                text: "The national code must be ten digits"
                                 color: "#F44336"
                                 font {
                                     family: "Tahoma"
@@ -330,7 +330,7 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "نام و نام خانوادگی:"
+                                text: "First name Last name : "
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -350,7 +350,7 @@ Item {
                                     id: nameField
                                     anchors.fill: parent
                                     anchors.margins: 2
-                                    placeholderText: "نام و نام خانوادگی بیمار"
+                                    placeholderText: "Patient Family"
                                     text: isEditMode ? patientName : ""
                                     horizontalAlignment: TextInput.AlignHCenter
 
@@ -409,7 +409,7 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "سن:"
+                                text: "Age:"
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -429,7 +429,7 @@ Item {
                                     id: ageField
                                     anchors.fill: parent
                                     anchors.margins: 2
-                                    placeholderText: "سن بیمار"
+                                    placeholderText: "Patient Age"
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     maximumLength: 3
                                     text: isEditMode ? patientAge.toString() : ""
@@ -481,7 +481,7 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "جنسیت:"
+                                text: "Gender:"
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -511,7 +511,7 @@ Item {
                                     RadioButton {
                                         id: maleRadio
                                         anchors.centerIn: parent
-                                        text: "مرد"
+                                        text: "Man"
                                         checked: isEditMode ? (patientGender === 1) : true
                                         // اضافه کردن به ButtonGroup
                                         ButtonGroup.group: genderGroup
@@ -550,7 +550,7 @@ Item {
                                     RadioButton {
                                         id: femaleRadio
                                         anchors.centerIn: parent
-                                        text: "زن"
+                                        text: "Woman"
                                         checked: isEditMode ? (patientGender === 0) : false
                                         // اضافه کردن به ButtonGroup
                                         ButtonGroup.group: genderGroup
@@ -614,7 +614,7 @@ Item {
                                 anchors.centerIn: parent
                                 width: 200
                                 height: 50
-                                text: newPatientRoot.isEditMode ? "به‌روزرسانی اطلاعات" : "ثبت بیمار"
+                                text: newPatientRoot.isEditMode ? "Update" : "Register"
 
                                 font {
                                     family: "Tahoma"
