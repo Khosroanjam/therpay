@@ -56,7 +56,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#f5f5f5"
+        color: "transparent"
 
         // سربرگ صفحه
         Rectangle {
@@ -122,7 +122,15 @@ Item {
                 anchors.centerIn: parent
             }
         }
-
+        // تصویر پشت زمینه
+        Image {
+            id: wallpaper
+            source: "images/medical-wallpaper-1.jpg"
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            cache: true
+            z: -2
+        }
         // محتوای اصلی صفحه
         Flickable {
             anchors {
@@ -174,7 +182,7 @@ Item {
 
                         // عنوان
                         Text {
-                            text: "اطلاعات بیمار"
+                            text: "Patient Information"
                             font {
                                 family: "Tahoma"
                                 pixelSize: 16
@@ -191,7 +199,7 @@ Item {
                             columnSpacing: 20
 
                             Text {
-                                text: "کد ملی:"
+                                text: "National Code : "
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -210,7 +218,7 @@ Item {
                             }
 
                             Text {
-                                text: "نام و نام خانوادگی:"
+                                text: "Name : "
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -229,7 +237,7 @@ Item {
                             }
 
                             Text {
-                                text: "سن:"
+                                text: "Age : "
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -248,7 +256,7 @@ Item {
                             }
 
                             Text {
-                                text: "جنسیت:"
+                                text: "Gender : "
                                 font {
                                     family: "Tahoma"
                                     pixelSize: 14
@@ -298,7 +306,7 @@ Item {
 
                         // عنوان
                         Text {
-                            text: "انتخاب نوع درمان"
+                            text: "Treatment Type"
                             font {
                                 family: "Tahoma"
                                 pixelSize: 16

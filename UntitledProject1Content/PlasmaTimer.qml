@@ -336,10 +336,8 @@ Item {
                                     if (checked) {
                                         try {
                                             // ارسال دستورات برای هندپیس 1
-                                            relayController.sendSerialCommand("R1ON")
-                                            logger.log("Sent command: R1ON")
-                                            relayController.sendSerialCommand("R2ON")
-                                            logger.log("Sent command: R2ON")
+
+                                            logger.log("Handpice 1 is checked")
                                         } catch (error) {
                                             logger.log("Error in Handpiece 1 activation: " + error)
                                             showToast("Error activating Handpiece 1")
@@ -347,10 +345,7 @@ Item {
                                     } else {
                                         try {
                                             // ارسال دستورات خاموش کردن هندپیس 1
-                                            relayController.sendSerialCommand("R1OFF")
-                                            logger.log("Sent command: R1OFF")  // این خط اصلاح شد
-                                            relayController.sendSerialCommand("R2OFF")
-                                            logger.log("Sent command: R2OFF")
+                                            logger.log("Handpice 1 is unchecked")
                                         } catch (error) {
                                             logger.log("Error in Handpiece 1 deactivation: " + error)
                                             showToast("Error deactivating Handpiece 1")
@@ -371,10 +366,7 @@ Item {
                                     if (checked) {
                                         try {
                                             // ارسال دستورات برای هندپیس 2
-                                            relayController.sendSerialCommand("R3ON")
-                                            logger.log("Sent command: R3ON")
-                                            relayController.sendSerialCommand("R4ON")
-                                            logger.log("Sent command: R4ON")
+                                           logger.log("Handpice 2 is checked")
                                         } catch (error) {
                                             logger.log("Error in Handpiece 2 activation: " + error)
                                             showToast("Error activating Handpiece 2")
@@ -382,10 +374,7 @@ Item {
                                     } else {
                                         try {
                                             // ارسال دستورات خاموش کردن هندپیس 2
-                                            relayController.sendSerialCommand("R3OFF")
-                                            logger.log("Sent command: R3OFF")
-                                            relayController.sendSerialCommand("R4OFF")
-                                            logger.log("Sent command: R4OFF")
+                                           logger.log("Handpice 2 is unchecked")
                                         } catch (error) {
                                             logger.log("Error in Handpiece 2 deactivation: " + error)
                                             showToast("Error deactivating Handpiece 2")
@@ -906,11 +895,13 @@ Item {
                     showToast("زمان درمان به پایان رسید")
                     logger.log("زمان درمان به اتمام رسید")
                     try {
-                            relayController.setRelay(1, false)
-                            logger.log("رله 1 خاموش شد")
-                        } catch (error) {
+                        relayController.sendSerialCommand("R1OFF")
+                        relayController.sendSerialCommand("R2OFF")
+                        relayController.sendSerialCommand("R3OFF")
+                        relayController.sendSerialCommand("R4OFF")
+                    } catch (error) {
                            logger.log("خطا در خاموش کردن رله: " + error)
-                        }
+                    }
                     logger.log("Befor Save Save Therapy")
                     // ذخیره جلسه در دیتابیس
                     saveTherapySession()
@@ -946,8 +937,15 @@ Item {
             showToast("تایمر شروع شد - در پایان زمان، جلسه ذخیره خواهد شد")
             // روشن کردن رله 1 هنگام شروع تایمر
             try {
-               //relayController.setRelay(1, true)
-               logger.log("رله 1 روشن شد")
+                if (handpiece1.checked) {
+                    relayController.sendSerialCommand("R1ON")
+                    relayController.sendSerialCommand("R2ON")
+                }
+                if (handpiece2.checked) {
+                    relayController.sendSerialCommand("R3ON")
+                    relayController.sendSerialCommand("R4ON")
+                }
+                logger.log("Handpice ON command sent")
             } catch (error) {
                logger.log("خطا در روشن کردن رله: " + error)
            }
@@ -959,7 +957,11 @@ Item {
             // خاموش کردن رله 1 هنگام توقف تایمر
             try {
                 //relayController.setRelay(1, false)
-                logger.log("Stop")
+                relayController.sendSerialCommand("R1OFF")
+                relayController.sendSerialCommand("R2OFF")
+                relayController.sendSerialCommand("R3OFF")
+                relayController.sendSerialCommand("R4OFF")
+                logger.log("Handpiece OFF commands sent")
             } catch (error) {
                 logger.log("خطا در خاموش کردن رله: " + error)
           }

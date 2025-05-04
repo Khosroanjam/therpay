@@ -33,16 +33,15 @@ Item {
         }
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: backgroundColor
-    }
+
+
 
     // StackView داخلی برای مدیریت صفحات برنامه
     StackView {
         id: appStackView
         anchors.fill: parent
         initialItem: mainAppPage
+
     }
 
     // صفحه اصلی برنامه
@@ -51,7 +50,15 @@ Item {
         Item {
             width: appStackView.width
             height: appStackView.height
-
+            // تصویر پشت زمینه
+            Image {
+                id: wallpaper
+                source: "images/medical-wallpaper-1.jpg"
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectCrop
+                cache: true
+                z: -2
+            }
             // نوار بالایی (هدر)
             Rectangle {
                 id: headerBar
