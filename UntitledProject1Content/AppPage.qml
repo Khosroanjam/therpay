@@ -42,6 +42,7 @@ Item {
         anchors.fill: parent
         initialItem: mainAppPage
 
+
     }
 
     // صفحه اصلی برنامه
@@ -53,7 +54,7 @@ Item {
             // تصویر پشت زمینه
             Image {
                 id: wallpaper
-                source: "images/medical-wallpaper-1.jpg"
+                source: "images/medical-wallpaper-2.jpg"
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectCrop
                 cache: true
@@ -1005,7 +1006,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: "Report"
+                                    text: "Reports"
                                     color: "white"
                                     font.family: "Tahoma"
                                     font.pixelSize: 20

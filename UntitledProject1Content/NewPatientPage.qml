@@ -185,7 +185,6 @@ Item {
                 id: formColumn
                 width: parent.width
                 spacing: 20
-
                 // کارت اصلی فرم با سایه
                 Rectangle {
                     Layout.fillWidth: true
@@ -201,6 +200,7 @@ Item {
                         radius: 8
                         color: "#20000000"
                         z: -1
+
                     }
 
                     // محتوای فرم
