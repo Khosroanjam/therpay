@@ -1143,7 +1143,7 @@ Item {
                                         Text {
                                             Layout.preferredWidth: 70
                                             Layout.fillHeight: true
-                                            text: modelData.gender === 0 ? "آقا" : "خانم"
+                                            text: modelData.gender === 0 ? "Woman" : "man"
                                             font {
                                                 family: "Tahoma"
                                                 pixelSize: 14

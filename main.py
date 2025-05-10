@@ -472,7 +472,7 @@ class ReportBackend(QObject):
         """
         
         result = self.db_manager.execute_query(query, params)
-        
+        print(result)
         patients = []
         for row in result:
             patients.append({
@@ -484,7 +484,8 @@ class ReportBackend(QObject):
                 "sessionCount": row[5],
                 "lastSession": row[6] if row[6] else ""
             })
-        
+        print("patients : => ")
+        print(patients)
         return patients
     
     @Slot(str, str, int, result='QVariantList')
